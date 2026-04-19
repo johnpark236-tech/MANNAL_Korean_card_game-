@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>MANNAL Korean Card Master</title>
+    <meta property="og:title" content="MANNAL Korean Card Game">
+    <meta property="og:description" content="그림과 단어로 한국어를 더 재미있게 배워보세요!">
+    <meta property="og:type" content="website">
+
+    <style>
+        :root {
+            --check-green: #03c75a;
+            --uph-blue: #0078D7;
+            --bg-color: #f5f6f8;
+            --text-dark: #222222;
+            --text-gray: #888888;
+            --border-light: #e3e5e8;
+            --card-back: #006782;
+        }
+
+        body { 
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation; /* 모바일 터치 반응성 개선 */
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            background: white; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sticky-header {
+            background: linear-gradient(135deg, #0078D7, #005A9E);
+            color: white; 
+            padding: 10px 15px;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            z-index: 10;
+        }
+
+        .game-dashboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-box {
+            text-align: center;
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 0;
+            border-radius: 10px;
+        }
+
+        .stat-title { font-size: 11px; opacity: 0.9; }
+        .stat-value { font-size: 18px; font-weight: bold; }
+
+        .game-view {
+            flex: 1;
+            padding: 10px;
+            display: grid;
+            gap: 8px;
+            background-color: var(--bg-color);
+            align-content: center;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .card.flipped { transform: rotateY(180deg); }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 6px;
+            border: 1px solid var(--border-light);
+            box-sizing: border-box;
+            padding: 2px;
+            text-align: center;
+        }
+
+        .card-front {
+            background-color: white;
+            transform: rotateY(180deg);
+            color: var(--text-dark);
+            font-weight: bold;
+        }
+
+        .card-img {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .card-back {
+            background-color: var(--card-back);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .card.matched {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.4s, visibility 0.4s;
+        }
+
+        .footer-wrap {
+            padding: 10px 20px;
+            background-color: white;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-main {
+            flex: 1;
+            padding: 12px;
+            background-color: var(--check-green);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-secondary { background-color: #333; }
+        .btn-main:active { opacity: 0.8; }
+
+        .toast {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: rgba(51, 51, 51, 0.9);
+            color: #fff;
+            text-align: center;
+            border-radius: 25px;
+            padding: 10px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 80px;
+            transform: translateX(-50%);
+            font-size: 13px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .toast.show { visibility: visible; opacity: 1; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="sticky-header">
+        <div style="text-align:center; font-size:12px; margin-bottom:8px; font-weight:bold; letter-spacing:1px;">
+            STAGE <span id="stage-num">1</span>
+        </div>
+        <div class="game-dashboard">
+            <div class="stat-box">
+                <div class="stat-title">시간</div>
+                <div class="stat-value" id="timer">00:00</div>
+            </div>
+            <div class="stat-box" style="background: rgba(255, 215, 0, 0.2);">
+                <div class="stat-title">시도</div>
+                <div class="stat-value" id="tries" style="color:#FFD700;">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">남은 짝</div>
+                <div class="stat-value" id="remains">0</div>
+            </div>
+        </div>
+        <div style="text-align:center; font-size:11px; margin-top:8px; opacity:0.8;">MANNAL Korean Card Master</div>
+    </div>
+
+    <div class="game-view" id="game-board"></div>
+
+    <div class="footer-wrap">
+        <button class="btn-main" onclick="confirmReset()">🔄 재시작</button>
+        <button class="btn-main btn-secondary" onclick="copyResult()">💬 결과 복사</button>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    const wordData = {
+    "사과": "🍎", "바나나": "🍌", "포도": "🍇", "수박": "🍉", "딸기": "🍓", 
+    "오렌지": "🍊", 
+    "참외": "🍐", // 참외의 길쭉한 모양을 살리기 위해 서양배 이모지 활용 (멜론과 구분)
+    "멜론": "🍈", 
+    "앵두": "🍒", 
+    "복숭아": "🍑", 
+    "망고": "🥭", "레몬": "🍋", 
+    "자두": "🍑", // 자두는 복숭아와 비슷하게 생겼으므로 🍑를 같이 쓰거나 🍒와 구분해서 사용
+    "배": "🍐", 
+    "감": "🟠", // 토마토(🍅)와 겹치지 않게 주황색 원으로 깔끔하게 표시
+    "귤": "🍊", 
+    "키위": "🥝", 
+    "토마토": "🍅", "파인애플": "🍍", 
+    "밤": "🌰"  // 하트보다는 말린 밤의 색과 모양이 비슷한 밤(Chestnut) 이모지 활용
+    };
+
+
+    const wordPool = Object.keys(wordData);
+    const stages = [
+        { cards: 6, cols: 2, rows: 3, fontSize: "18px", imgSize: "2.5em" },
+        { cards: 12, cols: 3, rows: 4, fontSize: "16px", imgSize: "2em" },
+        { cards: 18, cols: 4, rows: 6, fontSize: "12px", imgSize: "1.2em" }
+    ];
+
+    let currentStageIdx = 0;
+    let flippedCards = [];
+    let matchedCount = 0;
+    let tries = 0;
+    let timerInterval;
+    let seconds = 0;
+    let isLock = false;
+    let isAudioUnlocked = false; // 모바일 오디오 잠금 해제 상태 관리
+    let audioCtx = null;
+
+    // --- 실로폰 소리 재생 로직 ---
+    function playXylophone() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const notes = [523.25, 659.25, 783.99]; 
+        notes.forEach((freq, i) => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'triangle'; 
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.1);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime + i * 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.4);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start(audioCtx.currentTime + i * 0.1);
+            oscillator.stop(audioCtx.currentTime + i * 0.1 + 0.5);
+        });
+    }
+
+    // --- 음성 출력 로직 (모바일 최적화) ---
+    function speakWord(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // 이전 음성 중단
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ko-KR';
+            msg.pitch = 1.5; 
+            msg.rate = 1.2;  
+
+            // 아이폰/갤럭시 등 일부 브라우저에서 speechSynthesis가 멈추는 현상 방지
+            if (window.speechSynthesis.paused) {
+                window.speechSynthesis.resume();
+            }
+            
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    // --- 모바일 사운드 잠금 해제 (중요!) ---
+    function unlockAudio() {
+        if (isAudioUnlocked) return;
+
+        // 1. TTS 잠금 해제 (빈 문자열 재생)
+        speakWord("");
+        
+        // 2. Web Audio API 잠금 해제
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        isAudioUnlocked = true;
+        console.log("모바일 오디오 잠금 해제 완료");
+    }
+
+    function initGame() {
+        const stage = stages[currentStageIdx];
+        const board = document.getElementById('game-board');
+        document.getElementById('stage-num').innerText = currentStageIdx + 1;
+        board.innerHTML = '';
+        matchedCount = 0;
+        flippedCards = [];
+        isLock = false;
+        
+        board.style.gridTemplateColumns = `repeat(${stage.cols}, 1fr)`;
+        board.style.gridTemplateRows = `repeat(${stage.rows}, 1fr)`;
+
+        const pairCount = stage.cards / 2;
+        const selectedWords = [...wordPool].sort(() => 0.5 - Math.random()).slice(0, pairCount);
+        const deck = [...selectedWords, ...selectedWords].sort(() => 0.5 - Math.random());
+        
+        document.getElementById('remains').innerText = pairCount;
+
+        deck.forEach((word) => {
+            const cardEl = document.createElement('div');
+            cardEl.classList.add('card');
+            cardEl.dataset.word = word;
+            cardEl.innerHTML = `
+                <div class="card-back">?</div>
+                <div class="card-front">
+                    <div class="card-img" style="font-size: ${stage.imgSize}">${wordData[word]}</div>
+                    <div style="font-size: ${stage.fontSize}">${word}</div>
+                </div>
+            `;
+            // 카드를 클릭할 때 오디오 잠금 해제 시도
+            cardEl.onclick = () => {
+                unlockAudio();
+                flipCard(cardEl);
+            };
+            board.appendChild(cardEl);
+        });
+
+        if (currentStageIdx === 0) {
+            tries = 0;
+            document.getElementById('tries').innerText = '0';
+            startTimer();
+        }
+    }
+
+    function flipCard(card) {
+        if (isLock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+        
+        speakWord(card.dataset.word); // 단어 읽기
+        
+        card.classList.add('flipped');
+        flippedCards.push(card);
+        if (flippedCards.length === 2) {
+            tries++;
+            document.getElementById('tries').innerText = tries;
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        isLock = true;
+        const [card1, card2] = flippedCards;
+        if (card1.dataset.word === card2.dataset.word) {
+            playXylophone(); // 실로폰 재생
+            setTimeout(() => {
+                card1.classList.add('matched'); card2.classList.add('matched');
+                matchedCount += 2;
+                document.getElementById('remains').innerText = (stages[currentStageIdx].cards - matchedCount) / 2;
+                flippedCards = []; isLock = false;
+                if (matchedCount === stages[currentStageIdx].cards) nextStage();
+            }, 500);
+        } else {
+            setTimeout(() => {
+                card1.classList.remove('flipped'); card2.classList.remove('flipped');
+                flippedCards = []; isLock = false;
+            }, 800);
+        }
+    }
+
+    function nextStage() {
+        if (currentStageIdx < stages.length - 1) {
+            showToast(`STAGE ${currentStageIdx + 1} CLEAR!`);
+            currentStageIdx++;
+            setTimeout(initGame, 1500);
+        } else {
+            clearInterval(timerInterval);
+            speakWord("마스터 클리어! 우와! 정말 대단해요!");
+            showToast("🎊 MASTER CLEAR!");
+            confettiEffect();
+        }
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval); seconds = 0;
+        timerInterval = setInterval(() => {
+            seconds++;
+            const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+            const s = String(seconds % 60).padStart(2, '0');
+            document.getElementById('timer').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function confirmReset() {
+        if (confirm("MANNAL Master: 처음 단계로 돌아가시겠습니까?")) {
+            currentStageIdx = 0; initGame();
+        }
+    }
+
+    function copyResult() {
+        const time = document.getElementById('timer').innerText;
+        const tryCnt = document.getElementById('tries').innerText;
+        const text = `[MANNAL KOREAN MASTER]\n⏱ 시간: ${time}\n🔢 시도: ${tryCnt}회\n함께 도전해보세요!`;
+        navigator.clipboard.writeText(text).then(() => showToast("✅ 기록이 복사되었습니다!"));
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg; toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function confettiEffect() {
+        setTimeout(() => {
+            const time = document.getElementById('timer').innerText;
+            alert(`[MANNAL KOREAN MASTER]\n최종 시간: ${time}\n총 시도: ${tries}회\n축하합니다!`);
+        }, 500);
+    }
+
+    window.onload = initGame;
+</script>
+</body>
+</html>
