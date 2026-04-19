@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>MANAL Korean Card Master</title>
-    <meta property="og:title" content="MANAL Korean Card Game">
+    <title>MANNAL Korean Card Master</title>
+    <meta property="og:title" content="MANNAL Korean Card Game">
     <meta property="og:description" content="그림과 단어로 한국어를 더 재미있게 배워보세요!">
     <meta property="og:type" content="website">
 
@@ -203,7 +203,7 @@
                 <div class="stat-value" id="remains">0</div>
             </div>
         </div>
-        <div style="text-align:center; font-size:11px; margin-top:8px; opacity:0.8;">MANAL Korean Card Master</div>
+        <div style="text-align:center; font-size:11px; margin-top:8px; opacity:0.8;">MANNAL Korean Card Master</div>
     </div>
 
     <div class="game-view" id="game-board"></div>
@@ -367,10 +367,10 @@
     function shareResult() {
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
-        const text = `[MANAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
+        const text = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
 
         if (navigator.share) {
-            navigator.share({ title: 'MANAL Korean Card Master', text: text, url: window.location.href })
+            navigator.share({ title: 'MANNAL Korean Card Master', text: text, url: window.location.href })
             .then(() => showToast("✅ 공유 완료!"))
             .catch(() => copyToClipboard(text));
         } else {
@@ -392,7 +392,7 @@
     function confettiEffect() {
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
-        const resultText = `[MANAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
+        const resultText = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
 
         // 1. 확인창을 통해 결과 복사 동의 받기
         if(confirm(`축하합니다! 모든 스테이지를 클리어했습니다.\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n[확인]을 누르면 기록이 복사되고 게임이 종료됩니다.`)) {
@@ -423,7 +423,7 @@
             btn.style.backgroundColor = '#ccc';
         });
 
-        console.log("MANAL Master: Game Terminated.");
+        console.log("MANNAL Master: Game Terminated.");
     }
 
     window.onload = initGame;
