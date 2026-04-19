@@ -386,34 +386,39 @@
         setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    // --- 최종 스테이지 완료 후 결과 복사 및 화면 종료 로직 (수정됨) ---
+    // --- 최종 스테이지 완료 후 스마트폰 뒤로가기 효과 및 화면 종료 ---
     function confettiEffect() {
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
         const resultText = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
 
-        // 1. 확인창 출력
+        // 1. 결과 안내 및 복사 동의
         if(confirm(`축하합니다! 모든 스테이지를 클리어했습니다.\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n[확인]을 누르면 기록이 복사되고 화면이 종료됩니다.`)) {
             
-            // 2. 결과 클립보드 복사
+            // 2. 클립보드 복사 실행
             navigator.clipboard.writeText(resultText).then(() => {
-                alert("✅ 기록이 복사되었습니다. 창을 닫습니다.");
+                alert("✅ 기록이 복사되었습니다. 화면을 종료합니다.");
                 
                 // 3. 게임 엔진 종료
                 terminateGame();
 
-                // 4. 화면 닫기 시도 (스크립트 제어 창 우선)
+                // 4. 창 닫기 시도 (스크립트 제어 탭일 경우)
                 window.close();
 
-                // 5. 보안상 창이 안 닫힐 경우 빈 페이지로 대체 (모바일 대응)
+                // 5. 스마트폰 '뒤로 가기' 효과 (이전 채팅창이나 페이지로 복귀)
+                if (window.history.length > 1) {
+                    window.history.back();
+                }
+
+                // 6. 보안상 뒤로 가기가 안될 경우 최종 빈 페이지 처리
                 setTimeout(() => {
                     window.location.href = "about:blank";
-                }, 100);
+                }, 200);
             });
         }
     }
 
-    // 게임 인터랙션 완전 중지 함수
+    // 게임 모든 상호작용 중지 함수
     function terminateGame() {
         isLock = true;
         clearInterval(timerInterval);
