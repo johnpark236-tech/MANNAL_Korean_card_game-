@@ -342,7 +342,6 @@
             currentStageIdx++;
             setTimeout(initGame, 1500);
         } else {
-            // 모든 스테이지 완료 시
             clearInterval(timerInterval);
             speakWord("마스터 클리어! 축하합니다!");
             showToast("🎊 MASTER CLEAR!");
@@ -368,7 +367,6 @@
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
         const text = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
-
         if (navigator.share) {
             navigator.share({ title: 'MANNAL Korean Card Master', text: text, url: window.location.href })
             .then(() => showToast("✅ 공유 완료!"))
@@ -388,42 +386,45 @@
         setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    // --- 최종 완료 후 스크립트 종료 및 결과 복사 로직 (수정됨) ---
+    // --- 최종 스테이지 완료 후 결과 복사 및 화면 종료 로직 (수정됨) ---
     function confettiEffect() {
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
         const resultText = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
 
-        // 1. 확인창을 통해 결과 복사 동의 받기
-        if(confirm(`축하합니다! 모든 스테이지를 클리어했습니다.\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n[확인]을 누르면 기록이 복사되고 게임이 종료됩니다.`)) {
+        // 1. 확인창 출력
+        if(confirm(`축하합니다! 모든 스테이지를 클리어했습니다.\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n[확인]을 누르면 기록이 복사되고 화면이 종료됩니다.`)) {
             
-            // 2. 결과 복사 실행
+            // 2. 결과 클립보드 복사
             navigator.clipboard.writeText(resultText).then(() => {
-                alert("✅ 기록이 클립보드에 복사되었습니다! 카톡방에 붙여넣으세요.");
+                alert("✅ 기록이 복사되었습니다. 창을 닫습니다.");
                 
-                // 3. 게임 종료 처리 (스크립트 기능 정지)
+                // 3. 게임 엔진 종료
                 terminateGame();
+
+                // 4. 화면 닫기 시도 (스크립트 제어 창 우선)
+                window.close();
+
+                // 5. 보안상 창이 안 닫힐 경우 빈 페이지로 대체 (모바일 대응)
+                setTimeout(() => {
+                    window.location.href = "about:blank";
+                }, 100);
             });
         }
     }
 
-    // 신규 함수: 모든 게임 인터랙션 중지
+    // 게임 인터랙션 완전 중지 함수
     function terminateGame() {
-        isLock = true; // 모든 카드 클릭 잠금
-        clearInterval(timerInterval); // 타이머 완전 정지
-        
-        // 시각적으로 종료됨을 알리기 위해 게임판 반투명 처리
+        isLock = true;
+        clearInterval(timerInterval);
         document.getElementById('game-board').style.opacity = '0.3';
         document.getElementById('game-board').style.pointerEvents = 'none';
-        
-        // 하단 버튼 비활성화 (선택 사항)
         const buttons = document.querySelectorAll('.btn-main');
         buttons.forEach(btn => {
             btn.disabled = true;
             btn.style.backgroundColor = '#ccc';
         });
-
-        console.log("MANNAL Master: Game Terminated.");
+        console.log("MANNAL Master: Script Terminated.");
     }
 
     window.onload = initGame;
