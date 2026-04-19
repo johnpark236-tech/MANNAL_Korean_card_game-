@@ -29,7 +29,7 @@
             align-items: center; 
             height: 100vh;
             overflow: hidden;
-            touch-action: manipulation; /* 모바일 터치 반응성 개선 */
+            touch-action: manipulation;
         }
         
         .app-container {
@@ -120,10 +120,7 @@
             font-weight: bold;
         }
 
-        .card-img {
-            font-size: 2em;
-            margin-bottom: 5px;
-        }
+        .card-img { font-size: 2em; margin-bottom: 5px; }
 
         .card-back {
             background-color: var(--card-back);
@@ -213,7 +210,7 @@
 
     <div class="footer-wrap">
         <button class="btn-main" onclick="confirmReset()">🔄 재시작</button>
-        <button class="btn-main btn-secondary" onclick="copyResult()">💬 결과 복사</button>
+        <button class="btn-main btn-secondary" onclick="shareResult()">📤 카톡 공유</button>
     </div>
 </div>
 
@@ -221,28 +218,17 @@
 
 <script>
     const wordData = {
-    "사과": "🍎", "바나나": "🍌", "포도": "🍇", "수박": "🍉", "딸기": "🍓", 
-    "오렌지": "🍊", 
-    "참외": "🍐", // 참외의 길쭉한 모양을 살리기 위해 서양배 이모지 활용 (멜론과 구분)
-    "멜론": "🍈", 
-    "앵두": "🍒", 
-    "복숭아": "🍑", 
-    "망고": "🥭", "레몬": "🍋", 
-    "자두": "🍑", // 자두는 복숭아와 비슷하게 생겼으므로 🍑를 같이 쓰거나 🍒와 구분해서 사용
-    "배": "🟠", 
-    "감": "🍅", 
-    "귤": "🍊", 
-    "키위": "🥝", 
-    "토마토": "🍅", "파인애플": "🍍", 
-    "밤": "🌰"  // 하트보다는 말린 밤의 색과 모양이 비슷한 밤(Chestnut) 이모지 활용
+        "사과": "🍎", "바나나": "🍌", "포도": "🍇", "수박": "🍉", "딸기": "🍓", 
+        "오렌지": "🍊", "참외": "🍐", "멜론": "🍈", "앵두": "🍒", "복숭아": "🍑", 
+        "망고": "🥭", "레몬": "🍋", "자두": "🍑", "배": "🟠", "감": "🍅", 
+        "귤": "🍊", "키위": "🥝", "토마토": "🍅", "파인애플": "🍍", "밤": "🌰"
     };
-
 
     const wordPool = Object.keys(wordData);
     const stages = [
         { cards: 6, cols: 2, rows: 3, fontSize: "18px", imgSize: "2.5em" },
         { cards: 12, cols: 3, rows: 4, fontSize: "16px", imgSize: "2em" },
-        { cards: 16, cols: 4, rows: 6, fontSize: "12px", imgSize: "1.2em" }
+        { cards: 16, cols: 4, rows: 4, fontSize: "12px", imgSize: "1.5em" }
     ];
 
     let currentStageIdx = 0;
@@ -252,14 +238,11 @@
     let timerInterval;
     let seconds = 0;
     let isLock = false;
-    let isAudioUnlocked = false; // 모바일 오디오 잠금 해제 상태 관리
     let audioCtx = null;
 
-    // --- 실로폰 소리 재생 로직 ---
     function playXylophone() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-
         const notes = [523.25, 659.25, 783.99]; 
         notes.forEach((freq, i) => {
             const oscillator = audioCtx.createOscillator();
@@ -275,47 +258,22 @@
         });
     }
 
-    // --- 음성 출력 로직 (모바일 최적화) ---
     function speakWord(text) {
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // 이전 음성 중단
+            window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'ko-KR';
-            msg.pitch = 1.5; 
-            msg.rate = 1.2;  
-
-            // 아이폰/갤럭시 등 일부 브라우저에서 speechSynthesis가 멈추는 현상 방지
-            if (window.speechSynthesis.paused) {
-                window.speechSynthesis.resume();
-            }
-            
+            msg.pitch = 1.5; msg.rate = 1.2;
+            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
             window.speechSynthesis.speak(msg);
         }
-    }
-
-    // --- 모바일 사운드 잠금 해제 (중요!) ---
-    function unlockAudio() {
-        if (isAudioUnlocked) return;
-
-        // 1. TTS 잠금 해제 (빈 문자열 재생)
-        speakWord("");
-        
-        // 2. Web Audio API 잠금 해제
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        isAudioUnlocked = true;
-        console.log("모바일 오디오 잠금 해제 완료");
     }
 
     function initGame() {
         const stage = stages[currentStageIdx];
         const board = document.getElementById('game-board');
         document.getElementById('stage-num').innerText = currentStageIdx + 1;
-        board.innerHTML = '';
-        matchedCount = 0;
-        flippedCards = [];
-        isLock = false;
+        board.innerHTML = ''; matchedCount = 0; flippedCards = []; isLock = false;
         
         board.style.gridTemplateColumns = `repeat(${stage.cols}, 1fr)`;
         board.style.gridTemplateRows = `repeat(${stage.rows}, 1fr)`;
@@ -337,31 +295,23 @@
                     <div style="font-size: ${stage.fontSize}">${word}</div>
                 </div>
             `;
-            // 카드를 클릭할 때 오디오 잠금 해제 시도
-            cardEl.onclick = () => {
-                unlockAudio();
-                flipCard(cardEl);
-            };
+            cardEl.onclick = () => { if(!audioCtx) playXylophone(); flipCard(cardEl); };
             board.appendChild(cardEl);
         });
 
         if (currentStageIdx === 0) {
-            tries = 0;
-            document.getElementById('tries').innerText = '0';
+            tries = 0; document.getElementById('tries').innerText = '0';
             startTimer();
         }
     }
 
     function flipCard(card) {
         if (isLock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
-        
-        speakWord(card.dataset.word); // 단어 읽기
-        
+        speakWord(card.dataset.word);
         card.classList.add('flipped');
         flippedCards.push(card);
         if (flippedCards.length === 2) {
-            tries++;
-            document.getElementById('tries').innerText = tries;
+            tries++; document.getElementById('tries').innerText = tries;
             checkMatch();
         }
     }
@@ -370,7 +320,7 @@
         isLock = true;
         const [card1, card2] = flippedCards;
         if (card1.dataset.word === card2.dataset.word) {
-            playXylophone(); // 실로폰 재생
+            playXylophone();
             setTimeout(() => {
                 card1.classList.add('matched'); card2.classList.add('matched');
                 matchedCount += 2;
@@ -393,9 +343,9 @@
             setTimeout(initGame, 1500);
         } else {
             clearInterval(timerInterval);
-            speakWord("마스터 클리어! 우와! 정말 대단해요!");
+            speakWord("마스터 클리어! 기록을 친구에게 공유해보세요!");
             showToast("🎊 MASTER CLEAR!");
-            confettiEffect();
+            setTimeout(confettiEffect, 500);
         }
     }
 
@@ -410,16 +360,34 @@
     }
 
     function confirmReset() {
-        if (confirm("MANNAL Master: 처음 단계로 돌아가시겠습니까?")) {
-            currentStageIdx = 0; initGame();
+        if (confirm("처음 단계로 돌아가시겠습니까?")) { currentStageIdx = 0; initGame(); }
+    }
+
+    // --- 자동으로 공유 창 띄우기 기능 ---
+    function shareResult() {
+        const time = document.getElementById('timer').innerText;
+        const tryCnt = document.getElementById('tries').innerText;
+        const text = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'MANNAL Korean Card Master',
+                text: text,
+                url: window.location.href
+            }).then(() => {
+                showToast("✅ 공유 완료!");
+            }).catch((error) => {
+                // 사용자가 공유를 취소하거나 실패한 경우 클립보드로 대체
+                copyToClipboard(text);
+            });
+        } else {
+            // Web Share API를 지원하지 않는 브라우저(PC 등)는 클립보드 복사
+            copyToClipboard(text);
         }
     }
 
-    function copyResult() {
-        const time = document.getElementById('timer').innerText;
-        const tryCnt = document.getElementById('tries').innerText;
-        const text = `[MANNAL KOREAN MASTER]\n⏱ 시간: ${time}\n🔢 시도: ${tryCnt}회\n함께 도전해보세요!`;
-        navigator.clipboard.writeText(text).then(() => showToast("✅ 기록이 복사되었습니다!"));
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => showToast("✅ 기록이 복사되었습니다! 카톡에 붙여넣으세요."));
     }
 
     function showToast(msg) {
@@ -429,10 +397,11 @@
     }
 
     function confettiEffect() {
-        setTimeout(() => {
-            const time = document.getElementById('timer').innerText;
-            alert(`[MANNAL KOREAN MASTER]\n최종 시간: ${time}\n총 시도: ${tries}회\n축하합니다!`);
-        }, 500);
+        const time = document.getElementById('timer').innerText;
+        const tryCnt = document.getElementById('tries').innerText;
+        if(confirm(`축하합니다!\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n결과를 카톡방에 공유하시겠습니까?`)) {
+            shareResult();
+        }
     }
 
     window.onload = initGame;
