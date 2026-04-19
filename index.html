@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>MANNAL Korean Card Master</title>
-    <meta property="og:title" content="MANNAL Korean Card Game">
+    <title>MANAL Korean Card Master</title>
+    <meta property="og:title" content="MANAL Korean Card Game">
     <meta property="og:description" content="그림과 단어로 한국어를 더 재미있게 배워보세요!">
     <meta property="og:type" content="website">
 
@@ -203,7 +203,7 @@
                 <div class="stat-value" id="remains">0</div>
             </div>
         </div>
-        <div style="text-align:center; font-size:11px; margin-top:8px; opacity:0.8;">MANNAL Korean Card Master</div>
+        <div style="text-align:center; font-size:11px; margin-top:8px; opacity:0.8;">MANAL Korean Card Master</div>
     </div>
 
     <div class="game-view" id="game-board"></div>
@@ -342,8 +342,9 @@
             currentStageIdx++;
             setTimeout(initGame, 1500);
         } else {
+            // 모든 스테이지 완료 시
             clearInterval(timerInterval);
-            speakWord("마스터 클리어! 기록을 친구에게 공유해보세요!");
+            speakWord("마스터 클리어! 축하합니다!");
             showToast("🎊 MASTER CLEAR!");
             setTimeout(confettiEffect, 500);
         }
@@ -363,31 +364,22 @@
         if (confirm("처음 단계로 돌아가시겠습니까?")) { currentStageIdx = 0; initGame(); }
     }
 
-    // --- 자동으로 공유 창 띄우기 기능 ---
     function shareResult() {
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
-        const text = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
+        const text = `[MANAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
 
         if (navigator.share) {
-            navigator.share({
-                title: 'MANNAL Korean Card Master',
-                text: text,
-                url: window.location.href
-            }).then(() => {
-                showToast("✅ 공유 완료!");
-            }).catch((error) => {
-                // 사용자가 공유를 취소하거나 실패한 경우 클립보드로 대체
-                copyToClipboard(text);
-            });
+            navigator.share({ title: 'MANAL Korean Card Master', text: text, url: window.location.href })
+            .then(() => showToast("✅ 공유 완료!"))
+            .catch(() => copyToClipboard(text));
         } else {
-            // Web Share API를 지원하지 않는 브라우저(PC 등)는 클립보드 복사
             copyToClipboard(text);
         }
     }
 
     function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => showToast("✅ 기록이 복사되었습니다! 카톡에 붙여넣으세요."));
+        navigator.clipboard.writeText(text).then(() => showToast("✅ 기록이 복사되었습니다!"));
     }
 
     function showToast(msg) {
@@ -396,12 +388,42 @@
         setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
+    // --- 최종 완료 후 스크립트 종료 및 결과 복사 로직 (수정됨) ---
     function confettiEffect() {
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
-        if(confirm(`축하합니다!\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n결과를 카톡방에 공유하시겠습니까?`)) {
-            shareResult();
+        const resultText = `[MANAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
+
+        // 1. 확인창을 통해 결과 복사 동의 받기
+        if(confirm(`축하합니다! 모든 스테이지를 클리어했습니다.\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n[확인]을 누르면 기록이 복사되고 게임이 종료됩니다.`)) {
+            
+            // 2. 결과 복사 실행
+            navigator.clipboard.writeText(resultText).then(() => {
+                alert("✅ 기록이 클립보드에 복사되었습니다! 카톡방에 붙여넣으세요.");
+                
+                // 3. 게임 종료 처리 (스크립트 기능 정지)
+                terminateGame();
+            });
         }
+    }
+
+    // 신규 함수: 모든 게임 인터랙션 중지
+    function terminateGame() {
+        isLock = true; // 모든 카드 클릭 잠금
+        clearInterval(timerInterval); // 타이머 완전 정지
+        
+        // 시각적으로 종료됨을 알리기 위해 게임판 반투명 처리
+        document.getElementById('game-board').style.opacity = '0.3';
+        document.getElementById('game-board').style.pointerEvents = 'none';
+        
+        // 하단 버튼 비활성화 (선택 사항)
+        const buttons = document.querySelectorAll('.btn-main');
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.style.backgroundColor = '#ccc';
+        });
+
+        console.log("MANAL Master: Game Terminated.");
     }
 
     window.onload = initGame;
