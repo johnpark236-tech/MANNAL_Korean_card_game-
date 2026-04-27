@@ -40,7 +40,35 @@
             background: white; 
             display: flex;
             flex-direction: column;
+            position: relative;
         }
+
+        /* 언어 선택 모달 창 */
+        #lang-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        #lang-modal h2 { margin-bottom: 30px; font-size: 20px; color: var(--text-dark); }
+        .lang-btn {
+            width: 100%;
+            padding: 15px; margin-bottom: 10px;
+            background-color: var(--uph-blue); color: white;
+            border: none; border-radius: 8px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background 0.2s;
+        }
+        .lang-btn:active { opacity: 0.8; }
 
         .sticky-header {
             background: linear-gradient(135deg, #0078D7, #005A9E);
@@ -49,6 +77,7 @@
             border-bottom-left-radius: 15px;
             border-bottom-right-radius: 15px;
             z-index: 10;
+            flex-shrink: 0;
         }
 
         .game-dashboard {
@@ -75,12 +104,13 @@
             display: grid;
             gap: 8px;
             background-color: var(--bg-color);
-            align-content: center;
+            align-content: start;
+            overflow-y: auto; /* 카드가 많아지면 스크롤 가능하게 처리 */
         }
 
         .card {
             width: 100%;
-            height: 100%;
+            aspect-ratio: 1 / 1.1; /* 카드가 너무 길어지지 않게 비율 설정 */
             background-color: white;
             border-radius: 6px;
             display: flex;
@@ -109,7 +139,7 @@
             border-radius: 6px;
             border: 1px solid var(--border-light);
             box-sizing: border-box;
-            padding: 2px;
+            padding: 4px;
             text-align: center;
         }
 
@@ -120,7 +150,9 @@
             font-weight: bold;
         }
 
-        .card-img { font-size: 2em; margin-bottom: 5px; }
+        .card-img { font-size: 1.8em; margin-bottom: 2px; }
+        .card-ko { font-size: 13px; color: #111; margin-bottom: 2px;}
+        .card-lang { font-size: 10px; color: var(--uph-blue); word-break: keep-all; line-height: 1.1;}
 
         .card-back {
             background-color: var(--card-back);
@@ -141,6 +173,7 @@
             border-top: 1px solid var(--border-light);
             display: flex;
             gap: 10px;
+            flex-shrink: 0;
         }
 
         .btn-main {
@@ -185,6 +218,14 @@
 <body>
 
 <div class="app-container">
+    <div id="lang-modal">
+        <h2>학습할 언어를 선택하세요</h2>
+        <button class="lang-btn" onclick="startGame('vi')">베트남어 (Tiếng Việt)</button>
+        <button class="lang-btn" onclick="startGame('uz')">우즈베크어 (O'zbekcha)</button>
+        <button class="lang-btn" onclick="startGame('mn')">몽골어 (Монгол хэл)</button>
+        <button class="lang-btn" onclick="startGame('en')">영어 (English)</button>
+    </div>
+
     <div class="sticky-header">
         <div style="text-align:center; font-size:12px; margin-bottom:8px; font-weight:bold; letter-spacing:1px;">
             STAGE <span id="stage-num">1</span>
@@ -209,7 +250,7 @@
     <div class="game-view" id="game-board"></div>
 
     <div class="footer-wrap">
-        <button class="btn-main" onclick="confirmReset()">🔄 재시작</button>
+        <button class="btn-main" onclick="confirmReset()">🔄 언어 다시선택</button>
         <button class="btn-main btn-secondary" onclick="shareResult()">📤 카톡 공유</button>
     </div>
 </div>
@@ -217,20 +258,45 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    const wordData = {
-        "사과": "🍎", "바나나": "🍌", "포도": "🍇", "수박": "🍉", "딸기": "🍓", 
-        "오렌지": "🍊", "참외": "🍐", "멜론": "🍈", "앵두": "🍒", "복숭아": "🍑", 
-        "망고": "🥭", "레몬": "🍋", "자두": "🍑", "배": "🟠", "감": "🍅", 
-        "귤": "🍊", "키위": "🥝", "토마토": "🍅", "파인애플": "🍍", "밤": "🌰"
-    };
-
-    const wordPool = Object.keys(wordData);
-    const stages = [
-        { cards: 6, cols: 2, rows: 3, fontSize: "18px", imgSize: "2.5em" },
-        { cards: 12, cols: 3, rows: 4, fontSize: "16px", imgSize: "2em" },
-        { cards: 16, cols: 4, rows: 4, fontSize: "12px", imgSize: "1.5em" }
+    // 이미지에 제공된 전체 단어장 데이터
+    const wordData = [
+        { ko: "가족", vi: "Gia đình", uz: "Oila", mn: "Гэр бүл", en: "Family", emoji: "👨‍👩‍👧‍👦" },
+        { ko: "같다", vi: "Giống / Giống nhau", uz: "O'xshash / Bir xil", mn: "Адилхан", en: "To be same / Like", emoji: "🟰" },
+        { ko: "고양이", vi: "Con mèo", uz: "Mushuk", mn: "Муур", en: "Cat", emoji: "🐱" },
+        { ko: "나", vi: "Tôi / Mình", uz: "Men", mn: "Би", en: "I / Me", emoji: "🙋" },
+        { ko: "남동생", vi: "Em trai", uz: "Uka", mn: "Эрэгтэй дүү", en: "Younger brother", emoji: "👦" },
+        { ko: "남편", vi: "Chồng", uz: "Er / Turmush o'rtoq", mn: "Нөхөр", en: "Husband", emoji: "🤵‍♂️" },
+        { ko: "누나", vi: "Chị (của em trai)", uz: "Opa", mn: "Эгч", en: "Older sister (for male)", emoji: "👱‍♀️" },
+        { ko: "동생", vi: "Em", uz: "Uka / Singil", mn: "Дүү", en: "Younger sibling", emoji: "🧒" },
+        { ko: "되다", vi: "Trở thành", uz: "Bo'lmoq", mn: "Болох", en: "To become", emoji: "🔄" },
+        { ko: "드리다", vi: "Tặng / Biếu", uz: "Bermoq (hurmat)", mn: "Өгөх (хүндэтгэл)", en: "To give (honorific)", emoji: "🎁" },
+        { ko: "딸", vi: "Con gái", uz: "Qiz", mn: "Охин", en: "Daughter", emoji: "👧" },
+        { ko: "부모님", vi: "Bố mẹ / Phụ huynh", uz: "Ota-ona", mn: "Эцэг эх", en: "Parents", emoji: "👫" },
+        { ko: "아내", vi: "Vợ", uz: "Xotin / Ayol", mn: "Эхнэр", en: "Wife", emoji: "👰‍♀️" },
+        { ko: "아들", vi: "Con trai", uz: "O'g'il", mn: "Хүү", en: "Son", emoji: "👦" },
+        { ko: "아버지", vi: "Bố / Cha", uz: "Ota", mn: "Аав", en: "Father", emoji: "👨" },
+        { ko: "어머니", vi: "Mẹ", uz: "Ona", mn: "Ээж", en: "Mother", emoji: "👩" },
+        { ko: "언니", vi: "Chị (của em gái)", uz: "Opa", mn: "Эгч", en: "Older sister (for female)", emoji: "👩‍🦰" },
+        { ko: "오빠", vi: "Anh (của em gái)", uz: "Aka", mn: "Ах", en: "Older brother (for female)", emoji: "👨‍🦱" },
+        { ko: "이분", vi: "Người này (kính trọng)", uz: "Bu kishi", mn: "Энэ хүн (хүндэтгэл)", en: "This person (polite)", emoji: "👤" },
+        { ko: "중 (among)", vi: "Trong số / Giữa", uz: "Ichida / Orasida", mn: "Дунд", en: "Among / Of", emoji: "👥" },
+        { ko: "특히", vi: "Đặc biệt là", uz: "Ayniqsa", mn: "Ялангуяа", en: "Especially", emoji: "✨" },
+        { ko: "할머니", vi: "Bà", uz: "Buvi", mn: "Эмээ", en: "Grandmother", emoji: "👵" },
+        { ko: "할아버지", vi: "Ông", uz: "Bobo", mn: "Өвөө", en: "Grandfather", emoji: "👴" },
+        { ko: "형", vi: "Anh (của em trai)", uz: "Aka", mn: "Ах", en: "Older brother (for male)", emoji: "👱‍♂️" },
+        { ko: "화장품", vi: "Mỹ phẩm", uz: "Pardoz vositalari", mn: "Гоо сайхны бүтээгдэхүүн", en: "Cosmetics", emoji: "💄" }
     ];
 
+    // 5쌍 단위로 늘어나는 스테이지 구성 (최대 25쌍 가능)
+    const stages = [
+        { pairs: 5, cols: 3 },  // 스테이지 1: 5쌍 (10장)
+        { pairs: 10, cols: 4 }, // 스테이지 2: 10쌍 (20장)
+        { pairs: 15, cols: 5 }, // 스테이지 3: 15쌍 (30장)
+        { pairs: 20, cols: 5 }, // 스테이지 4: 20쌍 (40장)
+        { pairs: 25, cols: 5 }  // 스테이지 5: 25쌍 (50장)
+    ];
+
+    let currentLang = 'en'; // 기본 언어
     let currentStageIdx = 0;
     let flippedCards = [];
     let matchedCount = 0;
@@ -239,6 +305,13 @@
     let seconds = 0;
     let isLock = false;
     let audioCtx = null;
+
+    function startGame(langCode) {
+        currentLang = langCode;
+        document.getElementById('lang-modal').style.display = 'none';
+        currentStageIdx = 0;
+        initGame();
+    }
 
     function playXylophone() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -261,7 +334,9 @@
     function speakWord(text) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
+            // TTS가 '중 (among)'을 제대로 읽도록 불필요한 괄호 내용 제거
+            const cleanText = text.replace(" (among)", "");
+            const msg = new SpeechSynthesisUtterance(cleanText);
             msg.lang = 'ko-KR';
             msg.pitch = 1.5; msg.rate = 1.2;
             if (window.speechSynthesis.paused) window.speechSynthesis.resume();
@@ -275,24 +350,26 @@
         document.getElementById('stage-num').innerText = currentStageIdx + 1;
         board.innerHTML = ''; matchedCount = 0; flippedCards = []; isLock = false;
         
+        // 동적 그리드 설정 (열 개수에 맞춰 자동 정렬)
         board.style.gridTemplateColumns = `repeat(${stage.cols}, 1fr)`;
-        board.style.gridTemplateRows = `repeat(${stage.rows}, 1fr)`;
 
-        const pairCount = stage.cards / 2;
-        const selectedWords = [...wordPool].sort(() => 0.5 - Math.random()).slice(0, pairCount);
+        // 전체 단어풀에서 해당 스테이지의 쌍 수만큼 무작위 추출
+        const selectedWords = [...wordData].sort(() => 0.5 - Math.random()).slice(0, stage.pairs);
+        // 카드를 두 장씩 복제하여 섞음
         const deck = [...selectedWords, ...selectedWords].sort(() => 0.5 - Math.random());
         
-        document.getElementById('remains').innerText = pairCount;
+        document.getElementById('remains').innerText = stage.pairs;
 
-        deck.forEach((word) => {
+        deck.forEach((item) => {
             const cardEl = document.createElement('div');
             cardEl.classList.add('card');
-            cardEl.dataset.word = word;
+            cardEl.dataset.ko = item.ko;
             cardEl.innerHTML = `
                 <div class="card-back">?</div>
                 <div class="card-front">
-                    <div class="card-img" style="font-size: ${stage.imgSize}">${wordData[word]}</div>
-                    <div style="font-size: ${stage.fontSize}">${word}</div>
+                    <div class="card-img">${item.emoji}</div>
+                    <div class="card-ko">${item.ko}</div>
+                    <div class="card-lang">${item[currentLang]}</div>
                 </div>
             `;
             cardEl.onclick = () => { if(!audioCtx) playXylophone(); flipCard(cardEl); };
@@ -307,7 +384,7 @@
 
     function flipCard(card) {
         if (isLock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
-        speakWord(card.dataset.word);
+        speakWord(card.dataset.ko);
         card.classList.add('flipped');
         flippedCards.push(card);
         if (flippedCards.length === 2) {
@@ -319,14 +396,16 @@
     function checkMatch() {
         isLock = true;
         const [card1, card2] = flippedCards;
-        if (card1.dataset.word === card2.dataset.word) {
+        if (card1.dataset.ko === card2.dataset.ko) {
             playXylophone();
             setTimeout(() => {
                 card1.classList.add('matched'); card2.classList.add('matched');
                 matchedCount += 2;
-                document.getElementById('remains').innerText = (stages[currentStageIdx].cards - matchedCount) / 2;
+                document.getElementById('remains').innerText = (stages[currentStageIdx].pairs * 2 - matchedCount) / 2;
                 flippedCards = []; isLock = false;
-                if (matchedCount === stages[currentStageIdx].cards) nextStage();
+                
+                // 모든 카드를 맞췄을 경우 다음 스테이지로
+                if (matchedCount === stages[currentStageIdx].pairs * 2) nextStage();
             }, 500);
         } else {
             setTimeout(() => {
@@ -360,7 +439,10 @@
     }
 
     function confirmReset() {
-        if (confirm("처음 단계로 돌아가시겠습니까?")) { currentStageIdx = 0; initGame(); }
+        if (confirm("언어 선택 화면으로 돌아가시겠습니까?")) { 
+            clearInterval(timerInterval);
+            document.getElementById('lang-modal').style.display = 'flex';
+        }
     }
 
     function shareResult() {
@@ -386,31 +468,19 @@
         setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    // --- 최종 스테이지 완료 후 스마트폰 뒤로가기 효과 및 화면 종료 ---
     function confettiEffect() {
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
         const resultText = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
 
-        // 1. 결과 안내 및 복사 동의
         if(confirm(`축하합니다! 모든 스테이지를 클리어했습니다.\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n[확인]을 누르면 기록이 복사되고 화면이 종료됩니다.`)) {
-            
-            // 2. 클립보드 복사 실행
             navigator.clipboard.writeText(resultText).then(() => {
                 alert("✅ 기록이 복사되었습니다. 화면을 종료합니다.");
-                
-                // 3. 게임 엔진 종료
                 terminateGame();
-
-                // 4. 창 닫기 시도 (스크립트 제어 탭일 경우)
                 window.close();
-
-                // 5. 스마트폰 '뒤로 가기' 효과 (이전 채팅창이나 페이지로 복귀)
                 if (window.history.length > 1) {
                     window.history.back();
                 }
-
-                // 6. 보안상 뒤로 가기가 안될 경우 최종 빈 페이지 처리
                 setTimeout(() => {
                     window.location.href = "about:blank";
                 }, 200);
@@ -418,7 +488,6 @@
         }
     }
 
-    // 게임 모든 상호작용 중지 함수
     function terminateGame() {
         isLock = true;
         clearInterval(timerInterval);
@@ -429,10 +498,7 @@
             btn.disabled = true;
             btn.style.backgroundColor = '#ccc';
         });
-        console.log("MANNAL Master: Script Terminated.");
     }
-
-    window.onload = initGame;
 </script>
 </body>
 </html>
