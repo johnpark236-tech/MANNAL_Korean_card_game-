@@ -9,9 +9,10 @@
     <meta property="og:description" content="그림과 단어로 한국어를 더 재미있게 배워보세요!">
     <meta property="og:type" content="website">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
     <style>
+        /* CSS 스타일은 기존과 동일하게 유지 */
         :root {
             --check-green: #03c75a;
             --uph-blue: #0078D7;
@@ -278,24 +279,12 @@
 
 <script>
     // =========================================================================
-    // 💡여기에 구글 드라이브에서 복사한 링크를 넣어주세요!💡
-    const GOOGLE_DRIVE_LINK = "https://docs.google.com/spreadsheets/d/1ZCbw5oRfmo95P4gVUaisxH987Qm4DOk7/edit?usp=sharing&ouid=101152576649647838712&rtpof=true&sd=true";
+    // 파일 ID 고정
+    const FILE_ID = "1ZCbw5oRfmo95P4gVUaisxH987Qm4DOk7";
+    // 시트 이름 목록 고정 (엑셀 파일에 있는 시트 이름들을 배열에 추가해주세요)
+    const SHEET_NAMES = ["1과 1항", "1과 2항", "2과 1항", "2과 2항", "3과 1항", "3과 2항", "4과 1항", "4과 2항", "5과 1항", "5과 2항", "6과 1항", "6과 2항", "7과 1항"]; 
     // =========================================================================
 
-    // 주소에서 파일 아이디만 자동으로 뽑아내는 마법의 코드
-    function getDriveId(url) {
-        let match = url.match(/\/d\/(.+?)\//);
-        if (match) return match[1];
-        match = url.match(/[?&]id=(.+?)(&|$)/);
-        if (match) return match[1];
-        return "";
-    }
-    const fileId = getDriveId(GOOGLE_DRIVE_LINK);
-    
-    // 💡 원본 엑셀(.xlsx) 파일을 직접 다운로드하는 터널 주소 💡
-    const EXCEL_FILE_URL = `https://corsproxy.io/?${encodeURIComponent(`https://drive.google.com/uc?export=download&id=${fileId}`)}`;
-
-    let globalWorkbook = null; 
     let wordData = []; 
     let stages = [];   
     
@@ -309,59 +298,70 @@
     let isLock = false;
     let audioCtx = null;
 
-    window.onload = function() {
-        if (!fileId) {
-            document.getElementById('sheet-select').innerHTML = '<option value="">구글 드라이브 링크를 확인해주세요</option>';
-            return;
-        }
+    // Google Visualization API 로드
+    google.charts.load('current', {packages: ['corechart']});
+    google.charts.setOnLoadCallback(initializeApp);
 
-        fetch(EXCEL_FILE_URL)
-            .then(res => {
-                if(!res.ok) throw new Error("엑셀 파일을 찾을 수 없습니다.");
-                return res.arrayBuffer();
-            })
-            .then(data => {
-                globalWorkbook = XLSX.read(data, {type: 'array'});
-                
-                const select = document.getElementById('sheet-select');
-                select.innerHTML = ''; 
-                
-                globalWorkbook.SheetNames.forEach(sheetName => {
-                    const option = document.createElement('option');
-                    option.value = sheetName;
-                    option.innerText = sheetName;
-                    select.appendChild(option);
-                });
+    function initializeApp() {
+        // 시트 선택 메뉴 생성 (미리 정의된 시트 이름 사용)
+        const select = document.getElementById('sheet-select');
+        select.innerHTML = ''; 
+        
+        SHEET_NAMES.forEach(sheetName => {
+            const option = document.createElement('option');
+            option.value = sheetName;
+            option.innerText = sheetName;
+            select.appendChild(option);
+        });
 
-                document.querySelectorAll('.lang-btn').forEach(btn => btn.disabled = false);
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('sheet-select').innerHTML = '<option value="">엑셀 로딩 실패 (링크/권한 확인)</option>';
-            });
-    };
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.disabled = false);
+    }
 
     function startGame(langCode) {
         const sheetName = document.getElementById('sheet-select').value;
-        if (!sheetName || !globalWorkbook) return alert("단원을 먼저 선택해주세요!");
+        if (!sheetName) return alert("단원을 먼저 선택해주세요!");
 
         currentLang = langCode;
         document.getElementById('lang-modal').style.display = 'none';
+
+        // 선택한 시트의 데이터를 가져오는 쿼리 실행
+        fetchSheetData(sheetName);
+    }
+
+    function fetchSheetData(sheetName) {
+        // Google Visualization API 쿼리 URL 생성 (해당 시트 데이터 요청)
+        const queryUrl = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&headers=1`;
         
-        const worksheet = globalWorkbook.Sheets[sheetName];
-        const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+        const query = new google.visualization.Query(queryUrl);
+        query.send(handleQueryResponse);
+    }
+
+    function handleQueryResponse(response) {
+        if (response.isError()) {
+            console.error('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+            alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            document.getElementById('lang-modal').style.display = 'flex';
+            return;
+        }
+
+        const dataTable = response.getDataTable();
+        const numRows = dataTable.getNumberOfRows();
         
         wordData = [];
-        for(let i = 1; i < rawData.length; i++) {
-            const row = rawData[i];
-            if(!row[0]) continue; 
+
+        // 데이터 파싱 (A: 한국어, B: 베트남어, C: 우즈베크어, D: 몽골어, E: 영어)
+        for (let i = 0; i < numRows; i++) {
+            const koWord = dataTable.getValue(i, 0);
             
+            // 한국어 단어가 비어있으면 무시
+            if (!koWord) continue;
+
             wordData.push({
-                ko: row[0],
-                vi: row[1] || '',
-                uz: row[2] || '',
-                mn: row[3] || '',
-                en: row[4] || '',
+                ko: koWord,
+                vi: dataTable.getValue(i, 1) || '',
+                uz: dataTable.getValue(i, 2) || '',
+                mn: dataTable.getValue(i, 3) || '',
+                en: dataTable.getValue(i, 4) || '',
                 emoji: '💡' 
             });
         }
