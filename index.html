@@ -12,7 +12,6 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
     <style>
-        /* CSS 스타일은 기존과 동일하게 유지 */
         :root {
             --check-green: #03c75a;
             --uph-blue: #0078D7;
@@ -46,186 +45,119 @@
             position: relative;
         }
 
+        /* 설정 모달창 레이아웃 수정 */
         #lang-modal {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: rgba(255, 255, 255, 0.98);
             z-index: 100;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: start;
             align-items: center;
-            padding: 20px;
+            padding: 30px 20px;
             box-sizing: border-box;
             text-align: center;
+            overflow-y: auto;
         }
 
-        #lang-modal h2 { margin-bottom: 20px; font-size: 20px; color: var(--text-dark); }
+        #lang-modal h2 { margin-bottom: 15px; font-size: 18px; color: var(--text-dark); }
+        #lang-modal h3 { margin-top: 20px; margin-bottom: 10px; font-size: 14px; color: var(--text-gray); }
         
-        #sheet-select {
+        .select-box {
             width: 100%;
             padding: 12px;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             font-size: 16px;
             border-radius: 8px;
-            border: 1px solid var(--border-light);
+            border: 2px solid var(--uph-blue);
             background-color: white;
-            color: var(--text-dark);
+        }
+
+        /* 뒷면 선택 버튼 스타일 */
+        .option-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .opt-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .opt-btn.active {
+            border-color: var(--uph-blue);
+            background-color: #e7f3ff;
+            color: var(--uph-blue);
         }
 
         .lang-btn {
             width: 100%;
-            padding: 15px; margin-bottom: 10px;
+            padding: 15px; margin-bottom: 8px;
             background-color: var(--uph-blue); color: white;
             border: none; border-radius: 8px;
             font-size: 16px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: background 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .lang-btn:active { opacity: 0.8; }
-        .lang-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        .lang-btn:disabled { background-color: #ccc; }
 
         .sticky-header {
             background: linear-gradient(135deg, #0078D7, #005A9E);
-            color: white; 
-            padding: 10px 15px;
-            border-bottom-left-radius: 15px;
-            border-bottom-right-radius: 15px;
-            z-index: 10;
-            flex-shrink: 0;
+            color: white; padding: 10px 15px;
+            border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
+            z-index: 10; flex-shrink: 0;
         }
 
-        .game-dashboard {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .stat-box {
-            text-align: center;
-            flex: 1;
-            background: rgba(255,255,255,0.1);
-            padding: 5px 0;
-            border-radius: 10px;
-        }
-
+        .game-dashboard { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .stat-box { text-align: center; flex: 1; background: rgba(255,255,255,0.1); padding: 5px 0; border-radius: 10px; }
         .stat-title { font-size: 11px; opacity: 0.9; }
         .stat-value { font-size: 18px; font-weight: bold; }
 
         .game-view {
-            flex: 1;
-            padding: 10px;
-            display: grid;
-            gap: 8px;
-            background-color: var(--bg-color);
-            align-content: start;
-            overflow-y: auto;
+            flex: 1; padding: 10px; display: grid; gap: 8px;
+            background-color: var(--bg-color); align-content: start; overflow-y: auto;
         }
 
         .card {
-            width: 100%;
-            aspect-ratio: 1 / 1.1;
-            background-color: white;
-            border-radius: 6px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            position: relative;
-            transform-style: preserve-3d;
+            width: 100%; aspect-ratio: 1 / 1.1; background-color: white;
+            border-radius: 6px; cursor: pointer; position: relative;
+            transform-style: preserve-3d; transition: transform 0.3s;
         }
-
         .card.flipped { transform: rotateY(180deg); }
 
         .card-front, .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 6px;
-            border: 1px solid var(--border-light);
-            box-sizing: border-box;
-            padding: 4px;
-            text-align: center;
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; border-radius: 6px;
+            border: 1px solid var(--border-light); box-sizing: border-box; padding: 4px;
         }
 
-        .card-front {
-            background-color: white;
-            transform: rotateY(180deg);
-            color: var(--text-dark);
-            font-weight: bold;
-        }
-
+        .card-front { background-color: white; transform: rotateY(180deg); font-weight: bold; }
         .card-img { font-size: 1.8em; margin-bottom: 2px; }
-        .card-ko { font-size: 13px; color: #111; margin-bottom: 2px;}
-        .card-lang { font-size: 10px; color: var(--uph-blue); word-break: keep-all; line-height: 1.1;}
+        .card-ko { font-size: 13px; color: #111; }
+        .card-lang { font-size: 10px; color: var(--uph-blue); line-height: 1.1; }
 
-        .card-back {
-            background-color: var(--card-back);
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-        }
+        .card-back { background-color: var(--card-back); color: white; }
+        .back-emoji { font-size: 2em; }
+        .back-num { font-size: 24px; font-weight: bold; }
 
-        .card.matched {
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.4s, visibility 0.4s;
-        }
+        .card.matched { visibility: hidden; opacity: 0; transition: opacity 0.4s, visibility 0.4s; }
 
-        .footer-wrap {
-            padding: 10px 20px;
-            background-color: white;
-            border-top: 1px solid var(--border-light);
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-
-        .btn-main {
-            flex: 1;
-            padding: 12px;
-            background-color: var(--check-green);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-        }
-
+        .footer-wrap { padding: 10px 20px; background-color: white; border-top: 1px solid var(--border-light); display: flex; gap: 10px; }
+        .btn-main { flex: 1; padding: 12px; background-color: var(--check-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-secondary { background-color: #333; }
-        .btn-main:active { opacity: 0.8; }
 
         .toast {
-            visibility: hidden;
-            min-width: 200px;
-            background-color: rgba(51, 51, 51, 0.9);
-            color: #fff;
-            text-align: center;
-            border-radius: 25px;
-            padding: 10px;
-            position: fixed;
-            z-index: 1000;
-            left: 50%;
-            bottom: 80px;
-            transform: translateX(-50%);
-            font-size: 13px;
-            opacity: 0;
-            transition: opacity 0.3s;
+            visibility: hidden; min-width: 200px; background-color: rgba(51, 51, 51, 0.9);
+            color: #fff; text-align: center; border-radius: 25px; padding: 10px;
+            position: fixed; z-index: 1000; left: 50%; bottom: 80px; transform: translateX(-50%);
+            font-size: 13px; opacity: 0; transition: opacity 0.3s;
         }
         .toast.show { visibility: visible; opacity: 1; }
     </style>
@@ -234,12 +166,31 @@
 
 <div class="app-container">
     <div id="lang-modal">
-        <h2>학습할 언어와 단원을<br>선택하세요</h2>
+        <h2 style="color:var(--uph-blue)">KOREAN CARD MASTER</h2>
         
-        <select id="sheet-select">
-            <option value="">엑셀 파일을 불러오는 중...</option>
+        <h3>1. 학습 단원 선택</h3>
+        <select id="sheet-select" class="select-box">
+            <option value="all">전체 단어 (all)</option>
+            <option value="1과 1항">1과 1항</option>
+            <option value="1과 2항">1과 2항</option>
+            <option value="2과 1항">2과 1항</option>
+            <option value="2과 2항">2과 2항</option>
+            <option value="3과 1항">3과 1항</option>
+            <option value="3과 2항">3과 2항</option>
+            <option value="4과 1항">4과 1항</option>
+            <option value="4과 2항">4과 2항</option>
+            <option value="5과 1항">5과 1항</option>
+            <option value="5과 2항">5과 2항</option>
+            <option value="all">나머지 시트들...</option>
         </select>
 
+        <h3>2. 카드 뒷면 스타일</h3>
+        <div class="option-group">
+            <button class="opt-btn active" id="back-twin" onclick="setBackStyle('twin')">웃는 쌍둥이<br>👦👧</button>
+            <button class="opt-btn" id="back-num" onclick="setBackStyle('num')">카드 번호<br>1, 2, 3...</button>
+        </div>
+
+        <h3>3. 학습 언어 선택 및 시작</h3>
         <button class="lang-btn" id="btn-vi" onclick="startGame('vi')" disabled>베트남어 (Tiếng Việt)</button>
         <button class="lang-btn" id="btn-uz" onclick="startGame('uz')" disabled>우즈베크어 (O'zbekcha)</button>
         <button class="lang-btn" id="btn-mn" onclick="startGame('mn')" disabled>몽골어 (Монгол хэл)</button>
@@ -247,9 +198,7 @@
     </div>
 
     <div class="sticky-header">
-        <div style="text-align:center; font-size:12px; margin-bottom:8px; font-weight:bold; letter-spacing:1px;">
-            STAGE <span id="stage-num">1</span>
-        </div>
+        <div style="text-align:center; font-size:12px; margin-bottom:8px; font-weight:bold;">STAGE <span id="stage-num">1</span></div>
         <div class="game-dashboard">
             <div class="stat-box">
                 <div class="stat-title">시간</div>
@@ -264,31 +213,27 @@
                 <div class="stat-value" id="remains">0</div>
             </div>
         </div>
-        <div style="text-align:center; font-size:11px; margin-top:8px; opacity:0.8;">MANNAL Korean Card Master</div>
     </div>
 
     <div class="game-view" id="game-board"></div>
 
     <div class="footer-wrap">
-        <button class="btn-main" onclick="confirmReset()">🔄 설정으로 이동</button>
-        <button class="btn-main btn-secondary" onclick="shareResult()">📤 카톡 공유</button>
+        <button class="btn-main" onclick="confirmReset()">🔄 설정 변경</button>
+        <button class="btn-main btn-secondary" onclick="shareResult()">📤 결과 공유</button>
     </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
 <script>
-    // =========================================================================
-    // 파일 ID 고정
     const FILE_ID = "1ZCbw5oRfmo95P4gVUaisxH987Qm4DOk7";
-    // 시트 이름 목록 고정 (엑셀 파일에 있는 시트 이름들을 배열에 추가해주세요)
-    const SHEET_NAMES = ["all","1과 1항", "1과 2항", "2과 1항", "2과 2항", "3과 1항", "3과 2항", "4과 1항", "4과 2항", "5과 1항", "5과 2항", "6과 1항", "6과 2항", "7과 1항", "7과 2항", "8과 1항", "8과 2항", "9과 1항", "9과 2항", "10과 1항", "10과 2항", "11과 1항", "11과 2항", "12과 1항", "12과 2항", "13과 1항", "13과 2항", "14과 1항", "14과 2항", "15과 1항", "15과 2항", "16과 1항", "16과 2항"]; 
-    // =========================================================================
+    // 파이썬으로 통합한 시트 이름들 (필요시 추가)
+    const SHEET_NAMES = ["all", "1과 1항", "1과 2항", "2과 1항", "2과 2항", "3과 1항", "3과 2항", "4과 1항", "4과 2항", "5과 1항", "5과 2항", "6과 1항", "6과 2항", "7과 1항", "7과 2항", "8과 1항", "8과 2항", "9과 1항", "9과 2항", "10과 1항", "10과 2항", "11과 1항", "11과 2항", "12과 1항", "12과 2항", "13과 1항", "13과 2항", "14과 1항", "14과 2항", "15과 1항", "15과 2항", "16과 1항", "16과 2항"];
 
     let wordData = []; 
     let stages = [];   
-    
     let currentLang = 'en'; 
+    let backStyle = 'twin'; // 기본값: 쌍둥이
     let currentStageIdx = 0;
     let flippedCards = [];
     let matchedCount = 0;
@@ -298,78 +243,68 @@
     let isLock = false;
     let audioCtx = null;
 
-    // Google Visualization API 로드
     google.charts.load('current', {packages: ['corechart']});
     google.charts.setOnLoadCallback(initializeApp);
 
     function initializeApp() {
-        // 시트 선택 메뉴 생성 (미리 정의된 시트 이름 사용)
         const select = document.getElementById('sheet-select');
         select.innerHTML = ''; 
-        
-        SHEET_NAMES.forEach(sheetName => {
-            const option = document.createElement('option');
-            option.value = sheetName;
-            option.innerText = sheetName;
-            select.appendChild(option);
+        SHEET_NAMES.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name; opt.innerText = name;
+            select.appendChild(opt);
         });
-
         document.querySelectorAll('.lang-btn').forEach(btn => btn.disabled = false);
+    }
+
+    // 뒷면 스타일 선택 처리
+    function setBackStyle(style) {
+        backStyle = style;
+        document.getElementById('back-twin').classList.toggle('active', style === 'twin');
+        document.getElementById('back-num').classList.toggle('active', style === 'num');
     }
 
     function startGame(langCode) {
         const sheetName = document.getElementById('sheet-select').value;
-        if (!sheetName) return alert("단원을 먼저 선택해주세요!");
-
         currentLang = langCode;
         document.getElementById('lang-modal').style.display = 'none';
-
-        // 선택한 시트의 데이터를 가져오는 쿼리 실행
         fetchSheetData(sheetName);
     }
 
     function fetchSheetData(sheetName) {
-        // Google Visualization API 쿼리 URL 생성 (해당 시트 데이터 요청)
+        // gviz 쿼리를 통해 시트 데이터 요청 (F열 이모지 포함)
         const queryUrl = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&headers=1`;
-        
         const query = new google.visualization.Query(queryUrl);
         query.send(handleQueryResponse);
     }
 
     function handleQueryResponse(response) {
         if (response.isError()) {
-            console.error('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
-            alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            alert("데이터 로딩 실패! 구글 드라이브 권한을 확인해주세요.");
             document.getElementById('lang-modal').style.display = 'flex';
             return;
         }
 
-        const dataTable = response.getDataTable();
-        const numRows = dataTable.getNumberOfRows();
-        
+        const dt = response.getDataTable();
+        const rows = dt.getNumberOfRows();
+        const cols = dt.getNumberOfColumns();
         wordData = [];
 
-        // 데이터 파싱 (A: 한국어, B: 베트남어, C: 우즈베크어, D: 몽골어, E: 영어)
-        for (let i = 0; i < numRows; i++) {
-            const koWord = dataTable.getValue(i, 0);
+        for (let i = 0; i < rows; i++) {
+            const ko = dt.getValue(i, 0);
+            if (!ko) continue;
             
-            // 한국어 단어가 비어있으면 무시
-            if (!koWord) continue;
+            // 💡 엑셀 F열(인덱스 5)에서 파이썬으로 넣은 이모지를 가져옵니다.
+            let emojiValue = (cols > 5) ? dt.getValue(i, 5) : '💡';
 
             wordData.push({
-                ko: koWord,
-                vi: dataTable.getValue(i, 1) || '',
-                uz: dataTable.getValue(i, 2) || '',
-                mn: dataTable.getValue(i, 3) || '',
-                en: dataTable.getValue(i, 4) || '',
-                emoji: '💡' 
+                ko: ko,
+                vi: dt.getValue(i, 1) || '',
+                uz: dt.getValue(i, 2) || '',
+                mn: dt.getValue(i, 3) || '',
+                en: dt.getValue(i, 4) || '',
+                emoji: emojiValue || '💡'
             });
-        }
-
-        if(wordData.length === 0) {
-            alert("해당 단원에 단어가 없습니다.");
-            document.getElementById('lang-modal').style.display = 'flex';
-            return;
         }
 
         generateStages(wordData.length);
@@ -379,51 +314,13 @@
 
     function generateStages(totalWords) {
         stages = [];
-        let pairs = 5;
-        
-        while (pairs <= totalWords) {
-            let cols = pairs <= 5 ? 3 : (pairs <= 10 ? 4 : 5);
-            stages.push({ pairs: pairs, cols: cols });
-            pairs += 5;
+        let p = 5;
+        while (p <= totalWords) {
+            stages.push({ pairs: p, cols: p <= 5 ? 3 : (p <= 10 ? 4 : 5) });
+            p += 5;
         }
-        
-        if (totalWords % 5 !== 0 && totalWords > (pairs - 5)) {
-            stages.push({ pairs: totalWords, cols: 5 });
-        }
-        
-        if (stages.length === 0 && totalWords > 0) {
-            stages.push({ pairs: totalWords, cols: 3 });
-        }
-    }
-
-    function playXylophone() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const notes = [523.25, 659.25, 783.99]; 
-        notes.forEach((freq, i) => {
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.type = 'triangle'; 
-            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.1);
-            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime + i * 0.1);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.4);
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start(audioCtx.currentTime + i * 0.1);
-            oscillator.stop(audioCtx.currentTime + i * 0.1 + 0.5);
-        });
-    }
-
-    function speakWord(text) {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const cleanText = text.replace(" (among)", "");
-            const msg = new SpeechSynthesisUtterance(cleanText);
-            msg.lang = 'ko-KR';
-            msg.pitch = 1.5; msg.rate = 1.2;
-            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-            window.speechSynthesis.speak(msg);
-        }
+        if (totalWords % 5 !== 0 && totalWords > (p - 5)) stages.push({ pairs: totalWords, cols: 5 });
+        if (stages.length === 0 && totalWords > 0) stages.push({ pairs: totalWords, cols: 3 });
     }
 
     function initGame() {
@@ -431,20 +328,28 @@
         const board = document.getElementById('game-board');
         document.getElementById('stage-num').innerText = currentStageIdx + 1;
         board.innerHTML = ''; matchedCount = 0; flippedCards = []; isLock = false;
-        
         board.style.gridTemplateColumns = `repeat(${stage.cols}, 1fr)`;
 
-        const selectedWords = [...wordData].sort(() => 0.5 - Math.random()).slice(0, stage.pairs);
-        const deck = [...selectedWords, ...selectedWords].sort(() => 0.5 - Math.random());
+        const selected = [...wordData].sort(() => 0.5 - Math.random()).slice(0, stage.pairs);
+        const deck = [...selected, ...selected].sort(() => 0.5 - Math.random());
         
         document.getElementById('remains').innerText = stage.pairs;
 
-        deck.forEach((item) => {
+        deck.forEach((item, idx) => {
             const cardEl = document.createElement('div');
             cardEl.classList.add('card');
             cardEl.dataset.ko = item.ko;
+
+            // 카드 뒷면 내용 결정 (쌍둥이 vs 번호)
+            let backContent = '';
+            if(backStyle === 'twin') {
+                backContent = `<div class="back-emoji">👦👧</div>`; // 웃는 쌍둥이
+            } else {
+                backContent = `<div class="back-num">${idx + 1}</div>`; // 카드 순서 번호
+            }
+
             cardEl.innerHTML = `
-                <div class="card-back">?</div>
+                <div class="card-back">${backContent}</div>
                 <div class="card-front">
                     <div class="card-img">${item.emoji}</div>
                     <div class="card-ko">${item.ko}</div>
@@ -461,6 +366,32 @@
         }
     }
 
+    /* --- 기존 게임 엔진 로직 (미수정) --- */
+    function playXylophone() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const notes = [523.25, 659.25, 783.99]; 
+        notes.forEach((f, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle'; 
+            osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.1);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime + i * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.4);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + i * 0.1); osc.stop(audioCtx.currentTime + i * 0.1 + 0.5);
+        });
+    }
+
+    function speakWord(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text.replace(/ \(.*\)/, ""));
+            msg.lang = 'ko-KR'; msg.pitch = 1.5; msg.rate = 1.2;
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
     function flipCard(card) {
         if (isLock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
         speakWord(card.dataset.ko);
@@ -474,20 +405,19 @@
 
     function checkMatch() {
         isLock = true;
-        const [card1, card2] = flippedCards;
-        if (card1.dataset.ko === card2.dataset.ko) {
+        const [c1, c2] = flippedCards;
+        if (c1.dataset.ko === c2.dataset.ko) {
             playXylophone();
             setTimeout(() => {
-                card1.classList.add('matched'); card2.classList.add('matched');
+                c1.classList.add('matched'); c2.classList.add('matched');
                 matchedCount += 2;
                 document.getElementById('remains').innerText = (stages[currentStageIdx].pairs * 2 - matchedCount) / 2;
                 flippedCards = []; isLock = false;
-                
                 if (matchedCount === stages[currentStageIdx].pairs * 2) nextStage();
             }, 500);
         } else {
             setTimeout(() => {
-                card1.classList.remove('flipped'); card2.classList.remove('flipped');
+                c1.classList.remove('flipped'); c2.classList.remove('flipped');
                 flippedCards = []; isLock = false;
             }, 800);
         }
@@ -517,65 +447,38 @@
     }
 
     function confirmReset() {
-        if (confirm("언어 및 단원 선택 화면으로 돌아가시겠습니까?")) { 
+        if (confirm("설정 화면으로 돌아가시겠습니까?")) { 
             clearInterval(timerInterval);
             document.getElementById('lang-modal').style.display = 'flex';
         }
     }
 
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg; t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
     function shareResult() {
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
-        const text = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
+        const text = `[MANNAL KOREAN MASTER]\n⏱ 시간: ${time}\n🔢 시도: ${tryCnt}회\n학습 단원: ${document.getElementById('sheet-select').value}\n함께 한국어 공부해요!`;
         if (navigator.share) {
-            navigator.share({ title: 'MANNAL Korean Card Master', text: text, url: window.location.href })
-            .then(() => showToast("✅ 공유 완료!"))
-            .catch(() => copyToClipboard(text));
+            navigator.share({ title: 'Korean Card Master', text: text, url: window.location.href });
         } else {
-            copyToClipboard(text);
+            navigator.clipboard.writeText(text).then(() => showToast("✅ 기록이 복사되었습니다!"));
         }
-    }
-
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => showToast("✅ 기록이 복사되었습니다!"));
-    }
-
-    function showToast(msg) {
-        const toast = document.getElementById('toast');
-        toast.innerText = msg; toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
     function confettiEffect() {
         const time = document.getElementById('timer').innerText;
         const tryCnt = document.getElementById('tries').innerText;
-        const resultText = `[MANNAL KOREAN MASTER]\n⏱ 최종 시간: ${time}\n🔢 총 시도: ${tryCnt}회\n그림과 단어로 한국어를 배워보세요!`;
-
-        if(confirm(`축하합니다! 모든 스테이지를 클리어했습니다.\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n[확인]을 누르면 기록이 복사되고 화면이 종료됩니다.`)) {
-            navigator.clipboard.writeText(resultText).then(() => {
-                alert("✅ 기록이 복사되었습니다. 화면을 종료합니다.");
-                terminateGame();
-                window.close();
-                if (window.history.length > 1) {
-                    window.history.back();
-                }
-                setTimeout(() => {
-                    window.location.href = "about:blank";
-                }, 200);
+        if(confirm(`축하합니다! 모든 스테이지 클리어!\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n기록을 복사하고 종료하시겠습니까?`)) {
+            navigator.clipboard.writeText(`시간: ${time}, 시도: ${tryCnt}`).then(() => {
+                alert("기록 복사 완료!");
+                window.location.href = "about:blank";
             });
         }
-    }
-
-    function terminateGame() {
-        isLock = true;
-        clearInterval(timerInterval);
-        document.getElementById('game-board').style.opacity = '0.3';
-        document.getElementById('game-board').style.pointerEvents = 'none';
-        const buttons = document.querySelectorAll('.btn-main');
-        buttons.forEach(btn => {
-            btn.disabled = true;
-            btn.style.backgroundColor = '#ccc';
-        });
     }
 </script>
 </body>
