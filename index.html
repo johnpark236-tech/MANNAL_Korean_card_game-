@@ -277,12 +277,28 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    let globalWorkbook = null; // 로드된 엑셀 데이터를 담을 변수
+    // =========================================================================
+    // 💡여기에 구글 드라이브에서 복사한 링크를 넣어주세요!💡
+    // 예시: const GOOGLE_DRIVE_LINK = "https://drive.google.com/file/d/1aBcDeFgHiJkLmNoP/view?usp=sharing";
+    const GOOGLE_DRIVE_LINK = "https://docs.google.com/spreadsheets/d/1ZCbw5oRfmo95P4gVUaisxH987Qm4DOk7/edit?usp=sharing&ouid=101152576649647838712&rtpof=true&sd=true";
+    // =========================================================================
+
+    // 주소에서 파일 아이디만 자동으로 뽑아내는 마법의 코드
+    function getDriveId(url) {
+        let match = url.match(/\/d\/(.+?)\//);
+        if (match) return match[1];
+        match = url.match(/[?&]id=(.+?)(&|$)/);
+        if (match) return match[1];
+        return "";
+    }
+    const fileId = getDriveId(GOOGLE_DRIVE_LINK);
+    
+    // 보안을 우회하여 구글 드라이브 엑셀을 직접 다운로드하는 주소 생성
+    const EXCEL_FILE_URL = `https://corsproxy.io/?${encodeURIComponent(`https://drive.google.com/uc?export=download&id=${fileId}`)}`;
+
+    let globalWorkbook = null; 
     let wordData = []; 
     let stages = [];   
-    
-    // GitHub 업로드 시 동일한 폴더에 있는 엑셀 파일명 (공백 및 특수문자 주의)
-    const EXCEL_FILE_URL = './백석 부교재 1A_1B_단어.xlsx'; 
     
     let currentLang = 'en'; 
     let currentStageIdx = 0;
@@ -294,21 +310,23 @@
     let isLock = false;
     let audioCtx = null;
 
-    // 페이지가 로드되면 엑셀 파일을 읽어옵니다.
     window.onload = function() {
+        if (!fileId) {
+            document.getElementById('sheet-select').innerHTML = '<option value="">구글 드라이브 링크를 확인해주세요</option>';
+            return;
+        }
+
         fetch(EXCEL_FILE_URL)
             .then(res => {
                 if(!res.ok) throw new Error("엑셀 파일을 찾을 수 없습니다.");
                 return res.arrayBuffer();
             })
             .then(data => {
-                // SheetJS를 사용하여 엑셀 데이터 파싱
                 globalWorkbook = XLSX.read(data, {type: 'array'});
                 
                 const select = document.getElementById('sheet-select');
                 select.innerHTML = ''; 
                 
-                // 시트 목록을 드롭다운에 추가
                 globalWorkbook.SheetNames.forEach(sheetName => {
                     const option = document.createElement('option');
                     option.value = sheetName;
@@ -316,12 +334,11 @@
                     select.appendChild(option);
                 });
 
-                // 파일 로딩이 완료되면 언어 선택 버튼 활성화
                 document.querySelectorAll('.lang-btn').forEach(btn => btn.disabled = false);
             })
             .catch(err => {
                 console.error(err);
-                document.getElementById('sheet-select').innerHTML = '<option value="">엑셀 로딩 실패 (파일명/경로 확인)</option>';
+                document.getElementById('sheet-select').innerHTML = '<option value="">엑셀 로딩 실패 (링크/권한 확인)</option>';
             });
     };
 
@@ -332,24 +349,21 @@
         currentLang = langCode;
         document.getElementById('lang-modal').style.display = 'none';
         
-        // 선택한 시트의 데이터를 읽어 JSON 형태로 변환 (header: 1 은 배열 형태로 가져옴)
         const worksheet = globalWorkbook.Sheets[sheetName];
         const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
         
         wordData = [];
-        // 첫 번째 행(index 0)은 제목(헤더)이므로 index 1부터 시작
         for(let i = 1; i < rawData.length; i++) {
             const row = rawData[i];
-            if(!row[0]) continue; // 한국어 단어가 비어있으면 건너뜀
+            if(!row[0]) continue; 
             
-            // A열: 한국어(0), B열: 베트남어(1), C열: 우즈베크어(2), D열: 몽골어(3), E열: 영어(4)
             wordData.push({
                 ko: row[0],
                 vi: row[1] || '',
                 uz: row[2] || '',
                 mn: row[3] || '',
                 en: row[4] || '',
-                emoji: '💡' // 엑셀에 이모지가 없으므로 기본 아이콘 적용
+                emoji: '💡' 
             });
         }
 
