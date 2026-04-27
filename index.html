@@ -292,8 +292,8 @@
     }
     const fileId = getDriveId(GOOGLE_DRIVE_LINK);
     
-    // 💡 구글 시트 주소도 찰떡같이 다운로드하도록 마법의 터널 변경! 💡
-    const EXCEL_FILE_URL = `https://corsproxy.io/?${encodeURIComponent(`https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`)}`;
+    // 💡 원본 엑셀(.xlsx) 파일을 직접 다운로드하는 터널 주소 💡
+    const EXCEL_FILE_URL = `https://corsproxy.io/?${encodeURIComponent(`https://drive.google.com/uc?export=download&id=${fileId}`)}`;
 
     let globalWorkbook = null; 
     let wordData = []; 
