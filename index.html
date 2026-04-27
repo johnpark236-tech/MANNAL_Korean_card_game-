@@ -276,10 +276,9 @@
 
 <div id="toast" class="toast"></div>
 
-<script>
-    // =========================================================================
+
+// =========================================================================
     // 💡여기에 구글 드라이브에서 복사한 링크를 넣어주세요!💡
-    // 예시: const GOOGLE_DRIVE_LINK = "https://drive.google.com/file/d/1aBcDeFgHiJkLmNoP/view?usp=sharing";
     const GOOGLE_DRIVE_LINK = "https://docs.google.com/spreadsheets/d/1ZCbw5oRfmo95P4gVUaisxH987Qm4DOk7/edit?usp=sharing&ouid=101152576649647838712&rtpof=true&sd=true";
     // =========================================================================
 
@@ -292,6 +291,11 @@
         return "";
     }
     const fileId = getDriveId(GOOGLE_DRIVE_LINK);
+    
+    // 💡 구글 시트 주소도 찰떡같이 다운로드하도록 마법의 터널 변경! 💡
+    const EXCEL_FILE_URL = `https://corsproxy.io/?${encodeURIComponent(`https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`)}`;
+
+
     
     // 보안을 우회하여 구글 드라이브 엑셀을 직접 다운로드하는 주소 생성
     const EXCEL_FILE_URL = `https://corsproxy.io/?${encodeURIComponent(`https://drive.google.com/uc?export=download&id=${fileId}`)}`;
