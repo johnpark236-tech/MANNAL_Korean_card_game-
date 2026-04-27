@@ -181,7 +181,28 @@
             <option value="4과 2항">4과 2항</option>
             <option value="5과 1항">5과 1항</option>
             <option value="5과 2항">5과 2항</option>
-            <option value="all">나머지 시트들...</option>
+            <option value="6과 1항">6과 1항</option>
+            <option value="6과 2항">6과 2항</option>
+            <option value="7과 1항">7과 1항</option>
+            <option value="7과 2항">7과 2항</option>
+            <option value="8과 1항">8과 1항</option>
+            <option value="8과 2항">8과 2항</option>
+            <option value="9과 1항">9과 1항</option>
+            <option value="9과 2항">9과 2항</option>
+            <option value="10과 1항">10과 1항</option>
+            <option value="10과 2항">10과 2항</option>
+            <option value="11과 1항">11과 1항</option>
+            <option value="11과 2항">11과 2항</option>
+            <option value="12과 1항">12과 1항</option>
+            <option value="12과 2항">12과 2항</option>
+            <option value="13과 1항">13과 1항</option>
+            <option value="13과 2항">13과 2항</option>
+            <option value="14과 1항">14과 1항</option>
+            <option value="14과 2항">14과 2항</option>
+            <option value="15과 1항">15과 1항</option>
+            <option value="15과 2항">15과 2항</option>
+            <option value="16과 1항">16과 1항</option>
+            <option value="16과 2항">16과 2항</option>
         </select>
 
         <h3>2. 카드 뒷면 스타일</h3>
@@ -226,8 +247,19 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    const FILE_ID = "1ZCbw5oRfmo95P4gVUaisxH987Qm4DOk7";
-    const SHEET_NAMES = ["all", "1과 1항", "1과 2항", "2과 1항", "2과 2항", "3과 1항", "3과 2항", "4과 1항", "4과 2항", "5과 1항", "5과 2항", "6과 1항", "6과 2항", "7과 1항", "7과 2항", "8과 1항", "8과 2항", "9과 1항", "9과 2항", "10과 1항", "10과 2항", "11과 1항", "11과 2항", "12과 1항", "12과 2항", "13과 1항", "13과 2항", "14과 1항", "14과 2항", "15과 1항", "15과 2항", "16과 1항", "16과 2항"];
+    // =========================================================================
+    // 💡여기에 이모지를 추가해서 '새로 올린' 구글 드라이브 링크를 넣어주세요!💡
+    const GOOGLE_DRIVE_LINK = "https://docs.google.com/spreadsheets/d/1bIPF2bnDDh2nY9VFAkzwSb-kinS1zNsa/edit?usp=sharing&ouid=101152576649647838712&rtpof=true&sd=true";
+    // =========================================================================
+
+    function getDriveId(url) {
+        let match = url.match(/\/d\/(.+?)\//);
+        if (match) return match[1];
+        match = url.match(/[?&]id=(.+?)(&|$)/);
+        if (match) return match[1];
+        return "";
+    }
+    const FILE_ID = getDriveId(GOOGLE_DRIVE_LINK);
 
     let wordData = []; 
     let stages = [];   
@@ -246,13 +278,6 @@
     google.charts.setOnLoadCallback(initializeApp);
 
     function initializeApp() {
-        const select = document.getElementById('sheet-select');
-        select.innerHTML = ''; 
-        SHEET_NAMES.forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name; opt.innerText = name;
-            select.appendChild(opt);
-        });
         document.querySelectorAll('.lang-btn').forEach(btn => btn.disabled = false);
     }
 
@@ -267,12 +292,18 @@
         const sheetName = document.getElementById('sheet-select').value;
         currentLang = langCode;
         document.getElementById('lang-modal').style.display = 'none';
+        
+        if (!FILE_ID) {
+            alert("구글 드라이브 링크를 확인해 주세요.");
+            document.getElementById('lang-modal').style.display = 'flex';
+            return;
+        }
+
         fetchSheetData(sheetName);
     }
 
     function fetchSheetData(sheetName) {
-        // 💡 [핵심 수정 1] 명시적으로 A열부터 F열까지 전부 가져오라고 명령하고 (select A,B,C,D,E,F)
-        // 💡 [핵심 수정 2] 구글의 과거 캐시를 무시하도록 매번 새로운 난수(nocache)를 붙입니다.
+        // A~F열 데이터를 확실하게 요청하고, 캐시를 무시합니다.
         const queryUrl = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&headers=1&tq=${encodeURIComponent("select A,B,C,D,E,F")}&nocache=${new Date().getTime()}`;
         const query = new google.visualization.Query(queryUrl);
         query.send(handleQueryResponse);
@@ -280,7 +311,7 @@
 
     function handleQueryResponse(response) {
         if (response.isError()) {
-            alert("데이터 로딩 실패! 구글 드라이브 권한을 확인해주세요.");
+            alert("데이터 로딩 실패! 링크나 구글 드라이브 권한을 확인해주세요.");
             document.getElementById('lang-modal').style.display = 'flex';
             return;
         }
@@ -294,7 +325,7 @@
             const ko = dt.getValue(i, 0);
             if (!ko) continue;
             
-            // 💡 [핵심 수정 3] 엑셀 F열(인덱스 5) 이모지를 확실하게 캐치하도록 검증 로직 강화
+            // F열(인덱스 5) 이모지를 가져옵니다. 빈칸이면 💡 적용
             let emojiValue = '💡';
             if (cols > 5 && dt.getValue(i, 5) != null) {
                 let fetchedEmoji = dt.getValue(i, 5).toString().trim();
@@ -346,12 +377,12 @@
             cardEl.classList.add('card');
             cardEl.dataset.ko = item.ko;
 
-            // 카드 뒷면 내용 결정 (쌍둥이 vs 번호)
+            // 뒷면 스타일 적용
             let backContent = '';
             if(backStyle === 'twin') {
-                backContent = `<div class="back-emoji">👦👧</div>`; // 웃는 쌍둥이
+                backContent = `<div class="back-emoji">👦👧</div>`;
             } else {
-                backContent = `<div class="back-num">${idx + 1}</div>`; // 카드 순서 번호
+                backContent = `<div class="back-num">${idx + 1}</div>`;
             }
 
             cardEl.innerHTML = `
@@ -372,7 +403,6 @@
         }
     }
 
-    /* --- 기존 게임 엔진 로직 (미수정) --- */
     function playXylophone() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
