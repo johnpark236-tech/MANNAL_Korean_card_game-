@@ -9,6 +9,8 @@
     <meta property="og:description" content="그림과 단어로 한국어를 더 재미있게 배워보세요!">
     <meta property="og:type" content="website">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
         :root {
             --check-green: #03c75a;
@@ -43,7 +45,6 @@
             position: relative;
         }
 
-        /* 언어 선택 모달 창 */
         #lang-modal {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -58,7 +59,19 @@
             text-align: center;
         }
 
-        #lang-modal h2 { margin-bottom: 30px; font-size: 20px; color: var(--text-dark); }
+        #lang-modal h2 { margin-bottom: 20px; font-size: 20px; color: var(--text-dark); }
+        
+        #sheet-select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background-color: white;
+            color: var(--text-dark);
+        }
+
         .lang-btn {
             width: 100%;
             padding: 15px; margin-bottom: 10px;
@@ -69,6 +82,7 @@
             transition: background 0.2s;
         }
         .lang-btn:active { opacity: 0.8; }
+        .lang-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
         .sticky-header {
             background: linear-gradient(135deg, #0078D7, #005A9E);
@@ -105,12 +119,12 @@
             gap: 8px;
             background-color: var(--bg-color);
             align-content: start;
-            overflow-y: auto; /* 카드가 많아지면 스크롤 가능하게 처리 */
+            overflow-y: auto;
         }
 
         .card {
             width: 100%;
-            aspect-ratio: 1 / 1.1; /* 카드가 너무 길어지지 않게 비율 설정 */
+            aspect-ratio: 1 / 1.1;
             background-color: white;
             border-radius: 6px;
             display: flex;
@@ -219,11 +233,16 @@
 
 <div class="app-container">
     <div id="lang-modal">
-        <h2>학습할 언어를 선택하세요</h2>
-        <button class="lang-btn" onclick="startGame('vi')">베트남어 (Tiếng Việt)</button>
-        <button class="lang-btn" onclick="startGame('uz')">우즈베크어 (O'zbekcha)</button>
-        <button class="lang-btn" onclick="startGame('mn')">몽골어 (Монгол хэл)</button>
-        <button class="lang-btn" onclick="startGame('en')">영어 (English)</button>
+        <h2>학습할 언어와 단원을<br>선택하세요</h2>
+        
+        <select id="sheet-select">
+            <option value="">엑셀 파일을 불러오는 중...</option>
+        </select>
+
+        <button class="lang-btn" id="btn-vi" onclick="startGame('vi')" disabled>베트남어 (Tiếng Việt)</button>
+        <button class="lang-btn" id="btn-uz" onclick="startGame('uz')" disabled>우즈베크어 (O'zbekcha)</button>
+        <button class="lang-btn" id="btn-mn" onclick="startGame('mn')" disabled>몽골어 (Монгол хэл)</button>
+        <button class="lang-btn" id="btn-en" onclick="startGame('en')" disabled>영어 (English)</button>
     </div>
 
     <div class="sticky-header">
@@ -250,7 +269,7 @@
     <div class="game-view" id="game-board"></div>
 
     <div class="footer-wrap">
-        <button class="btn-main" onclick="confirmReset()">🔄 언어 다시선택</button>
+        <button class="btn-main" onclick="confirmReset()">🔄 설정으로 이동</button>
         <button class="btn-main btn-secondary" onclick="shareResult()">📤 카톡 공유</button>
     </div>
 </div>
@@ -258,45 +277,14 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    // 이미지에 제공된 전체 단어장 데이터
-    const wordData = [
-        { ko: "가족", vi: "Gia đình", uz: "Oila", mn: "Гэр бүл", en: "Family", emoji: "👨‍👩‍👧‍👦" },
-        { ko: "같다", vi: "Giống / Giống nhau", uz: "O'xshash / Bir xil", mn: "Адилхан", en: "To be same / Like", emoji: "🟰" },
-        { ko: "고양이", vi: "Con mèo", uz: "Mushuk", mn: "Муур", en: "Cat", emoji: "🐱" },
-        { ko: "나", vi: "Tôi / Mình", uz: "Men", mn: "Би", en: "I / Me", emoji: "🙋" },
-        { ko: "남동생", vi: "Em trai", uz: "Uka", mn: "Эрэгтэй дүү", en: "Younger brother", emoji: "👦" },
-        { ko: "남편", vi: "Chồng", uz: "Er / Turmush o'rtoq", mn: "Нөхөр", en: "Husband", emoji: "🤵‍♂️" },
-        { ko: "누나", vi: "Chị (của em trai)", uz: "Opa", mn: "Эгч", en: "Older sister (for male)", emoji: "👱‍♀️" },
-        { ko: "동생", vi: "Em", uz: "Uka / Singil", mn: "Дүү", en: "Younger sibling", emoji: "🧒" },
-        { ko: "되다", vi: "Trở thành", uz: "Bo'lmoq", mn: "Болох", en: "To become", emoji: "🔄" },
-        { ko: "드리다", vi: "Tặng / Biếu", uz: "Bermoq (hurmat)", mn: "Өгөх (хүндэтгэл)", en: "To give (honorific)", emoji: "🎁" },
-        { ko: "딸", vi: "Con gái", uz: "Qiz", mn: "Охин", en: "Daughter", emoji: "👧" },
-        { ko: "부모님", vi: "Bố mẹ / Phụ huynh", uz: "Ota-ona", mn: "Эцэг эх", en: "Parents", emoji: "👫" },
-        { ko: "아내", vi: "Vợ", uz: "Xotin / Ayol", mn: "Эхнэр", en: "Wife", emoji: "👰‍♀️" },
-        { ko: "아들", vi: "Con trai", uz: "O'g'il", mn: "Хүү", en: "Son", emoji: "👦" },
-        { ko: "아버지", vi: "Bố / Cha", uz: "Ota", mn: "Аав", en: "Father", emoji: "👨" },
-        { ko: "어머니", vi: "Mẹ", uz: "Ona", mn: "Ээж", en: "Mother", emoji: "👩" },
-        { ko: "언니", vi: "Chị (của em gái)", uz: "Opa", mn: "Эгч", en: "Older sister (for female)", emoji: "👩‍🦰" },
-        { ko: "오빠", vi: "Anh (của em gái)", uz: "Aka", mn: "Ах", en: "Older brother (for female)", emoji: "👨‍🦱" },
-        { ko: "이분", vi: "Người này (kính trọng)", uz: "Bu kishi", mn: "Энэ хүн (хүндэтгэл)", en: "This person (polite)", emoji: "👤" },
-        { ko: "중 (among)", vi: "Trong số / Giữa", uz: "Ichida / Orasida", mn: "Дунд", en: "Among / Of", emoji: "👥" },
-        { ko: "특히", vi: "Đặc biệt là", uz: "Ayniqsa", mn: "Ялангуяа", en: "Especially", emoji: "✨" },
-        { ko: "할머니", vi: "Bà", uz: "Buvi", mn: "Эмээ", en: "Grandmother", emoji: "👵" },
-        { ko: "할아버지", vi: "Ông", uz: "Bobo", mn: "Өвөө", en: "Grandfather", emoji: "👴" },
-        { ko: "형", vi: "Anh (của em trai)", uz: "Aka", mn: "Ах", en: "Older brother (for male)", emoji: "👱‍♂️" },
-        { ko: "화장품", vi: "Mỹ phẩm", uz: "Pardoz vositalari", mn: "Гоо сайхны бүтээгдэхүүн", en: "Cosmetics", emoji: "💄" }
-    ];
-
-    // 5쌍 단위로 늘어나는 스테이지 구성 (최대 25쌍 가능)
-    const stages = [
-        { pairs: 5, cols: 3 },  // 스테이지 1: 5쌍 (10장)
-        { pairs: 10, cols: 4 }, // 스테이지 2: 10쌍 (20장)
-        { pairs: 15, cols: 5 }, // 스테이지 3: 15쌍 (30장)
-        { pairs: 20, cols: 5 }, // 스테이지 4: 20쌍 (40장)
-        { pairs: 25, cols: 5 }  // 스테이지 5: 25쌍 (50장)
-    ];
-
-    let currentLang = 'en'; // 기본 언어
+    let globalWorkbook = null; // 로드된 엑셀 데이터를 담을 변수
+    let wordData = []; 
+    let stages = [];   
+    
+    // GitHub 업로드 시 동일한 폴더에 있는 엑셀 파일명 (공백 및 특수문자 주의)
+    const EXCEL_FILE_URL = './백석 부교재 1A_1B_단어.xlsx'; 
+    
+    let currentLang = 'en'; 
     let currentStageIdx = 0;
     let flippedCards = [];
     let matchedCount = 0;
@@ -306,11 +294,93 @@
     let isLock = false;
     let audioCtx = null;
 
+    // 페이지가 로드되면 엑셀 파일을 읽어옵니다.
+    window.onload = function() {
+        fetch(EXCEL_FILE_URL)
+            .then(res => {
+                if(!res.ok) throw new Error("엑셀 파일을 찾을 수 없습니다.");
+                return res.arrayBuffer();
+            })
+            .then(data => {
+                // SheetJS를 사용하여 엑셀 데이터 파싱
+                globalWorkbook = XLSX.read(data, {type: 'array'});
+                
+                const select = document.getElementById('sheet-select');
+                select.innerHTML = ''; 
+                
+                // 시트 목록을 드롭다운에 추가
+                globalWorkbook.SheetNames.forEach(sheetName => {
+                    const option = document.createElement('option');
+                    option.value = sheetName;
+                    option.innerText = sheetName;
+                    select.appendChild(option);
+                });
+
+                // 파일 로딩이 완료되면 언어 선택 버튼 활성화
+                document.querySelectorAll('.lang-btn').forEach(btn => btn.disabled = false);
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('sheet-select').innerHTML = '<option value="">엑셀 로딩 실패 (파일명/경로 확인)</option>';
+            });
+    };
+
     function startGame(langCode) {
+        const sheetName = document.getElementById('sheet-select').value;
+        if (!sheetName || !globalWorkbook) return alert("단원을 먼저 선택해주세요!");
+
         currentLang = langCode;
         document.getElementById('lang-modal').style.display = 'none';
+        
+        // 선택한 시트의 데이터를 읽어 JSON 형태로 변환 (header: 1 은 배열 형태로 가져옴)
+        const worksheet = globalWorkbook.Sheets[sheetName];
+        const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+        
+        wordData = [];
+        // 첫 번째 행(index 0)은 제목(헤더)이므로 index 1부터 시작
+        for(let i = 1; i < rawData.length; i++) {
+            const row = rawData[i];
+            if(!row[0]) continue; // 한국어 단어가 비어있으면 건너뜀
+            
+            // A열: 한국어(0), B열: 베트남어(1), C열: 우즈베크어(2), D열: 몽골어(3), E열: 영어(4)
+            wordData.push({
+                ko: row[0],
+                vi: row[1] || '',
+                uz: row[2] || '',
+                mn: row[3] || '',
+                en: row[4] || '',
+                emoji: '💡' // 엑셀에 이모지가 없으므로 기본 아이콘 적용
+            });
+        }
+
+        if(wordData.length === 0) {
+            alert("해당 단원에 단어가 없습니다.");
+            document.getElementById('lang-modal').style.display = 'flex';
+            return;
+        }
+
+        generateStages(wordData.length);
         currentStageIdx = 0;
         initGame();
+    }
+
+    function generateStages(totalWords) {
+        stages = [];
+        let pairs = 5;
+        
+        while (pairs <= totalWords) {
+            let cols = pairs <= 5 ? 3 : (pairs <= 10 ? 4 : 5);
+            stages.push({ pairs: pairs, cols: cols });
+            pairs += 5;
+        }
+        
+        if (totalWords % 5 !== 0 && totalWords > (pairs - 5)) {
+            stages.push({ pairs: totalWords, cols: 5 });
+        }
+        
+        if (stages.length === 0 && totalWords > 0) {
+            stages.push({ pairs: totalWords, cols: 3 });
+        }
     }
 
     function playXylophone() {
@@ -334,7 +404,6 @@
     function speakWord(text) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
-            // TTS가 '중 (among)'을 제대로 읽도록 불필요한 괄호 내용 제거
             const cleanText = text.replace(" (among)", "");
             const msg = new SpeechSynthesisUtterance(cleanText);
             msg.lang = 'ko-KR';
@@ -350,12 +419,9 @@
         document.getElementById('stage-num').innerText = currentStageIdx + 1;
         board.innerHTML = ''; matchedCount = 0; flippedCards = []; isLock = false;
         
-        // 동적 그리드 설정 (열 개수에 맞춰 자동 정렬)
         board.style.gridTemplateColumns = `repeat(${stage.cols}, 1fr)`;
 
-        // 전체 단어풀에서 해당 스테이지의 쌍 수만큼 무작위 추출
         const selectedWords = [...wordData].sort(() => 0.5 - Math.random()).slice(0, stage.pairs);
-        // 카드를 두 장씩 복제하여 섞음
         const deck = [...selectedWords, ...selectedWords].sort(() => 0.5 - Math.random());
         
         document.getElementById('remains').innerText = stage.pairs;
@@ -404,7 +470,6 @@
                 document.getElementById('remains').innerText = (stages[currentStageIdx].pairs * 2 - matchedCount) / 2;
                 flippedCards = []; isLock = false;
                 
-                // 모든 카드를 맞췄을 경우 다음 스테이지로
                 if (matchedCount === stages[currentStageIdx].pairs * 2) nextStage();
             }, 500);
         } else {
@@ -439,7 +504,7 @@
     }
 
     function confirmReset() {
-        if (confirm("언어 선택 화면으로 돌아가시겠습니까?")) { 
+        if (confirm("언어 및 단원 선택 화면으로 돌아가시겠습니까?")) { 
             clearInterval(timerInterval);
             document.getElementById('lang-modal').style.display = 'flex';
         }
