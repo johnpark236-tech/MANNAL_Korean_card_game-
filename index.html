@@ -289,6 +289,22 @@
     }
 
     function startGame(langCode) {
+        // =====================================================================
+        // [수정: 모바일 브라우저 (iOS/Android) TTS 및 오디오 활성화 (Unlock) 추가]
+        // 스마트폰은 사용자의 터치(클릭) 이벤트 안에서 오디오/TTS를 한 번 초기화해야 작동합니다.
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        if ('speechSynthesis' in window) {
+            // 빈 음성을 한 번 출력하여 스마트폰의 음성 합성 기능을 강제로 깨웁니다.
+            const unlockMsg = new SpeechSynthesisUtterance('');
+            window.speechSynthesis.speak(unlockMsg);
+        }
+        // =====================================================================
+
         const sheetName = document.getElementById('sheet-select').value;
         currentLang = langCode;
         document.getElementById('lang-modal').style.display = 'none';
