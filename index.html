@@ -3,229 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <title>MANNAL Korean Card Master</title>
-    <meta property="og:title" content="MANNAL Korean Card Game">
-    <meta property="og:description" content="그림과 단어로 한국어를 더 재미있게 배워보세요!">
-    <meta property="og:type" content="website">
+    <title>🌸 MANNAL 한국어 단어 마스터 🌸</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <style>
         :root {
-            --check-green: #03c75a;
-            --uph-blue: #0078D7;
-            --bg-color: #f5f6f8;
-            --text-dark: #222222;
-            --text-gray: #888888;
-            --border-light: #e3e5e8;
-            --card-back: #006782;
+            --primary-color: #FF69B4;
+            --primary-light: #FFC0CB;
+            --primary-dark: #C71585;
+            --bg-default: #FFF0F5;
         }
-        body {
-            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            touch-action: manipulation;
-        }
-        
-        .app-container {
-            width: 100%;
-            max-width: 420px;
-            height: 100%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            background: white;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        /* 설정 모달창 레이아웃 수정 */
-        #lang-modal {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(255, 255, 255, 0.98);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            justify-content: start;
-            align-items: center;
-            padding: 30px 20px;
+        body { 
+            background-color: var(--bg-default); 
+            font-family: 'Jua', sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px 0; 
+            color: #333; 
             box-sizing: border-box;
-            text-align: center;
-            overflow-y: auto;
+            transition: background-color 0.3s ease;
         }
-        #lang-modal h2 { margin-bottom: 15px; font-size: 18px; color: var(--text-dark); }
-        #lang-modal h3 { margin-top: 20px; margin-bottom: 10px; font-size: 14px; color: var(--text-gray); }
+        .timer-bar { width: 90%; max-width: 400px; text-align: right; margin-bottom: 10px; font-size: 14px; color: var(--primary-dark); font-weight: bold; }
+        .card { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 25px rgba(255, 105, 180, 0.15); width: 90%; max-width: 400px; text-align: center; border: 4px solid var(--primary-light); margin-bottom: 20px; box-sizing: border-box; }
+        h1 { color: var(--primary-dark); font-size: 26px; margin-top: 0; margin-bottom: 15px; text-shadow: 1px 1px 2px rgba(255, 182, 193, 0.5); }
+        h3 { font-size: 16px; color: #555; margin-top: 15px; margin-bottom: 8px; text-align: left; }
         
-        .select-box {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 2px solid var(--uph-blue);
-            background-color: white;
-        }
-        /* 뒷면 선택 버튼 스타일 */
-        .option-group {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        .opt-btn {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid var(--border-light);
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .opt-btn.active {
-            border-color: var(--uph-blue);
-            background-color: #e7f3ff;
-            color: var(--uph-blue);
-        }
-        .lang-btn {
-            width: 100%;
-            padding: 15px; margin-bottom: 8px;
-            background-color: var(--uph-blue); color: white;
-            border: none; border-radius: 8px;
-            font-size: 16px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .lang-btn:disabled { background-color: #ccc; }
-        .sticky-header {
-            background: linear-gradient(135deg, #0078D7, #005A9E);
-            color: white; padding: 10px 15px;
-            border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
-            z-index: 10; flex-shrink: 0;
-        }
-        .game-dashboard { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .stat-box { text-align: center; flex: 1; background: rgba(255,255,255,0.1); padding: 5px 0; border-radius: 10px; }
-        .stat-title { font-size: 11px; opacity: 0.9; }
-        .stat-value { font-size: 18px; font-weight: bold; }
-        .game-view {
-            flex: 1; padding: 10px; display: grid; gap: 8px;
-            background-color: var(--bg-color); align-content: start; overflow-y: auto;
-        }
-        .card {
-            width: 100%; aspect-ratio: 1 / 1.1; background-color: white;
-            border-radius: 6px; cursor: pointer; position: relative;
-            transform-style: preserve-3d; transition: transform 0.3s;
-        }
-        .card.flipped { transform: rotateY(180deg); }
-        .card-front, .card-back {
-            position: absolute; width: 100%; height: 100%;
-            backface-visibility: hidden; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; border-radius: 6px;
-            border: 1px solid var(--border-light); box-sizing: border-box; padding: 4px;
-        }
-        .card-front { background-color: white; transform: rotateY(180deg); font-weight: bold; }
-        .card-img { font-size: 1.8em; margin-bottom: 2px; }
-        .card-ko { font-size: 13px; color: #111; }
-        .card-lang { font-size: 10px; color: var(--uph-blue); line-height: 1.1; }
-        .card-back { background-color: var(--card-back); color: white; }
-        .back-emoji { font-size: 2em; }
-        .back-num { font-size: 24px; font-weight: bold; }
-        .card.matched { visibility: hidden; opacity: 0; transition: opacity 0.4s, visibility 0.4s; }
-        .footer-wrap { padding: 10px 20px; background-color: white; border-top: 1px solid var(--border-light); display: flex; gap: 10px; }
-        .btn-main { flex: 1; padding: 12px; background-color: var(--check-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-secondary { background-color: #333; }
-        .toast {
-            visibility: hidden; min-width: 200px; background-color: rgba(51, 51, 51, 0.9);
-            color: #fff; text-align: center; border-radius: 25px; padding: 10px;
-            position: fixed; z-index: 1000; left: 50%; bottom: 80px; transform: translateX(-50%);
-            font-size: 13px; opacity: 0; transition: opacity 0.3s;
-        }
-        .toast.show { visibility: visible; opacity: 1; }
+        /* 🚨 광고 팝업 스타일 */
+        #ad-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 10000; flex-direction: column; justify-content: center; align-items: center; }
+        .popup-content { background: white; padding: 30px; border-radius: 25px; width: 85%; max-width: 320px; text-align: center; }
+
+        /* 공통 UI 요소 */
+        .select-box { font-family: 'Jua', sans-serif; width: 100%; padding: 12px; font-size: 16px; border-radius: 15px; border: 2px solid var(--primary-color); background-color: white; color: #333; outline: none; margin-bottom: 10px; }
+        .start-btn { font-family: 'Jua', sans-serif; background: var(--primary-color); color: white; border: none; padding: 14px; border-radius: 20px; font-size: 18px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(255, 105, 180, 0.3); margin-top: 10px; width: 100%; }
+        .start-btn:hover { background: var(--primary-dark); }
+        .start-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+        
+        .level-info { background: #FFE4E1; color: var(--primary-dark); padding: 6px 15px; border-radius: 20px; display: inline-block; font-size: 15px; margin-bottom: 15px; }
+        .question-text { font-size: 24px; font-weight: bold; color: #222; margin-bottom: 20px; line-height: 1.4; }
+        .word-highlight { color: var(--primary-dark); font-size: 30px; display: block; margin-bottom: 5px; }
+        .options { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        button.option-btn { font-family: 'Jua', sans-serif; background: white; color: #333; border: 2px solid var(--primary-light); padding: 14px; border-radius: 20px; font-size: 16px; cursor: pointer; transition: all 0.2s; text-align: left; padding-left: 20px; }
+        button.option-btn:hover { background: #FFF0F5; border-color: var(--primary-color); }
+
+        /* 🎨 색상 커스텀 패널 관련 스타일 */
+        .color-picker-section { border: 2px dashed var(--primary-light); padding: 12px; border-radius: 20px; margin-top: 15px; background: #fafafa; }
+        .color-palette { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .color-chip { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        .color-chip:hover { transform: scale(1.15); }
+        .custom-color-row { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: #666; }
+        .picker-input { border: none; width: 40px; height: 30px; cursor: pointer; background: none; }
+
+        /* ✨ 광고 디자인 */
+        .ad-container { width: 90%; max-width: 400px; text-align: center; margin-top: 10px; }
+        .algo-bubble { background: white; border: 3px solid var(--primary-color); padding: 18px; border-radius: 20px; font-size: 15px; color: #333; cursor: pointer; display: block; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(255, 105, 180, 0.1); line-height: 1.6; position: relative; text-align: center; }
+        .algo-bubble:hover { background: #FFF0F5; transform: translateY(-3px); box-shadow: 0 6px 15px rgba(255, 105, 180, 0.2); }
+        .cta-text { display: block; margin-top: 10px; font-size: 13px; color: var(--primary-dark); font-weight: bold; text-decoration: underline; }
+        .ad-notice { font-size: 10px; color: #999; margin-top: 8px; line-height: 1.4; }
+        .copyright { font-size: 11px; color: #bbb; margin-top: 25px; text-align: center; line-height: 1.5; padding-bottom: 20px; }
+        
+        .nav-footer { display: flex; gap: 10px; margin-top: 15px; width: 100%; }
+        .nav-btn { flex: 1; padding: 10px; border-radius: 15px; border: 1px solid #ccc; font-family: 'Jua', sans-serif; cursor: pointer; background: #fdfdfd; }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <div id="lang-modal">
-        <h2 style="color:var(--uph-blue)">KOREAN CARD MASTER</h2>
-        
-        <h3>1. 학습 단원 선택</h3>
-        <select id="sheet-select" class="select-box">
-            <option value="all">전체 단어 (all)</option>
-            <option value="1과 1항">1과 1항</option>
-            <option value="1과 2항">1과 2항</option>
-            <option value="2과 1항">2과 1항</option>
-            <option value="2과 2항">2과 2항</option>
-            <option value="3과 1항">3과 1항</option>
-            <option value="3과 2항">3과 2항</option>
-            <option value="4과 1항">4과 1항</option>
-            <option value="4과 2항">4과 2항</option>
-            <option value="5과 1항">5과 1항</option>
-            <option value="5과 2항">5과 2항</option>
-            <option value="6과 1항">6과 1항</option>
-            <option value="6과 2항">6과 2항</option>
-            <option value="7과 1항">7과 1항</option>
-            <option value="7과 2항">7과 2항</option>
-            <option value="8과 1항">8과 1항</option>
-            <option value="8과 2항">8과 2항</option>
-            <option value="9과 1항">9과 1항</option>
-            <option value="9과 2항">9과 2항</option>
-            <option value="10과 1항">10과 1항</option>
-            <option value="10과 2항">10과 2항</option>
-            <option value="11과 1항">11과 1항</option>
-            <option value="11과 2항">11과 2항</option>
-            <option value="12과 1항">12과 1항</option>
-            <option value="12과 2항">12과 2항</option>
-            <option value="13과 1항">13과 1항</option>
-            <option value="13과 2항">13과 2항</option>
-            <option value="14과 1항">14과 1항</option>
-            <option value="14과 2항">14과 2항</option>
-            <option value="15과 1항">15과 1항</option>
-            <option value="15과 2항">15과 2항</option>
-            <option value="16과 1항">16과 1항</option>
-            <option value="16과 2항">16과 2항</option>
-        </select>
-        <h3>2. 카드 뒷면 스타일</h3>
-        <div class="option-group">
-            <button class="opt-btn active" id="back-twin" onclick="setBackStyle('twin')">웃는 쌍둥이<br>👦👧</button>
-            <button class="opt-btn" id="back-num" onclick="setBackStyle('num')">카드 번호<br>1, 2, 3...</button>
+
+<div class="timer-bar" id="timer-display">다음 보너스 타임까지: 03:00</div>
+
+<div id="intro-screen" class="card">
+    <h1>🌸 MANNAL 단어 마스터 🌸</h1>
+    <p style="margin-bottom: 20px; color:#666; font-size:15px;">단원을 선택하고 다국어 단어 퀴즈에 도전하세요!</p>
+    
+    <h3>1. 학습 단원 선택</h3>
+    <select id="sheet-select" class="select-box">
+        <option value="all">전체 단어 (all)</option>
+        <option value="1과 1항">1과 1항</option><option value="1과 2항">1과 2항</option>
+        <option value="2과 1항">2과 1항</option><option value="2과 2항">2과 2항</option>
+        <option value="3과 1항">3과 1항</option><option value="3과 2항">3과 2항</option>
+        <option value="4과 1항">4과 1항</option><option value="4과 2항">4과 2항</option>
+        <option value="5과 1항">5과 1항</option><option value="5과 2항">5과 2항</option>
+        <option value="6과 1항">6과 1항</option><option value="6과 2항">6과 2항</option>
+        <option value="7과 1항">7과 1항</option><option value="7과 2항">7과 2항</option>
+        <option value="8과 1항">8과 1항</option><option value="8과 2항">8과 2항</option>
+        <option value="9과 1항">9과 1항</option><option value="9과 2항">9과 2항</option>
+        <option value="10과 1항">10과 1항</option><option value="10과 2항">10과 2항</option>
+        <option value="11과 1항">11과 1항</option><option value="11과 2항">11과 2항</option>
+        <option value="12과 1항">12과 1항</option><option value="12과 2항">12과 2항</option>
+        <option value="13과 1항">13과 1항</option><option value="13과 2항">13과 2항</option>
+        <option value="14과 1항">14과 1항</option><option value="14과 2항">14과 2항</option>
+        <option value="15과 1항">15과 1항</option><option value="15과 2항">15과 2항</option>
+        <option value="16과 1항">16과 1항</option><option value="16과 2항">16과 2항</option>
+    </select>
+
+    <h3>2. 학습 목적 언어 선택</h3>
+    <select id="lang-select" class="select-box">
+        <option value="vi">베트남어 (Tiếng Việt)</option>
+        <option value="uz">우즈베크어 (O'zbekcha)</option>
+        <option value="mn">몽골어 (Монгол хэл)</option>
+        <option value="en">영어 (English)</option>
+    </select>
+
+    <div class="color-picker-section">
+        <div style="font-size:14px; color:#444; margin-bottom:8px; font-weight:bold; text-align:left;">🎨 배경 테마 색상 설정</div>
+        <div class="color-palette">
+            <div class="color-chip" style="background-color: #FFF0F5;" onclick="changeBg('#FFF0F5')"></div>
+            <div class="color-chip" style="background-color: #E0F8F5;" onclick="changeBg('#E0F8F5')"></div>
+            <div class="color-chip" style="background-color: #E0F0F8;" onclick="changeBg('#E0F0F8')"></div>
+            <div class="color-chip" style="background-color: #FFFDE0;" onclick="changeBg('#FFFDE0')"></div>
+            <div class="color-chip" style="background-color: #F5F6F8;" onclick="changeBg('#F5F6F8')"></div>
         </div>
-        <h3>3. 학습 언어 선택 및 시작</h3>
-        <button class="lang-btn" id="btn-vi" onclick="startGame('vi')" disabled>베트남어 (Tiếng Việt)</button>
-        <button class="lang-btn" id="btn-uz" onclick="startGame('uz')" disabled>우즈베크어 (O'zbekcha)</button>
-        <button class="lang-btn" id="btn-mn" onclick="startGame('mn')" disabled>몽골어 (Монгол хэл)</button>
-        <button class="lang-btn" id="btn-en" onclick="startGame('en')" disabled>영어 (English)</button>
-    </div>
-    <div class="sticky-header">
-        <div style="text-align:center; font-size:12px; margin-bottom:8px; font-weight:bold;">STAGE <span id="stage-num">1</span></div>
-        <div class="game-dashboard">
-            <div class="stat-box">
-                <div class="stat-title">시간</div>
-                <div class="stat-value" id="timer">00:00</div>
-            </div>
-            <div class="stat-box" style="background: rgba(255, 215, 0, 0.2);">
-                <div class="stat-title">시도</div>
-                <div class="stat-value" id="tries" style="color:#FFD700;">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">남은 짝</div>
-                <div class="stat-value" id="remains">0</div>
-            </div>
+        <div class="custom-color-row">
+            <span>사용자 지정 색상 고르기:</span>
+            <input type="color" id="bg-color-picker" class="picker-input" value="#FFF0F5" oninput="changeBg(this.value)">
         </div>
     </div>
-    <div class="game-view" id="game-board"></div>
-    <div class="footer-wrap">
-        <button class="btn-main" onclick="confirmReset()">🔄 설정 변경</button>
-        <button class="btn-main btn-secondary" onclick="shareResult()">📤 결과 공유</button>
+
+    <button class="start-btn" id="start-game-btn" onclick="prepareGame()" disabled>데이터 로딩 중... 잠시만 기다려주세요 ⏳</button>
+</div>
+
+<div id="ad-popup">
+    <div class="popup-content">
+        <h2 style="color: var(--primary-dark); margin-top: 0;">💡 잠시 쉬어가는 시간!</h2>
+        <a id="popup-link" href="" target="_blank" onclick="closeAdPopup()" style="text-decoration: none;">
+            <div class="algo-bubble">
+                <span id="popup-msg"></span>
+                <span class="cta-text">내용 자세히 알아보기 ▶</span>
+            </div>
+        </a>
+        <p style="font-size: 11px; color: #888; margin-top: 20px;">(위 박스를 클릭하시면 게임이 재개됩니다)</p>
     </div>
 </div>
-<div id="toast" class="toast"></div>
+
+<div id="app" class="card" style="display:none;">
+    <div class="level-info" id="level-display">Level 1</div>
+    <div id="progress-display" style="font-size: 14px; color: var(--primary-dark); margin-bottom: 12px;">진행도: 0 / 1</div>
+    
+    <div class="question-text">
+        <span class="word-highlight" id="word-display">단어</span>
+        의 맞는 것을 고르세요~
+    </div>
+    
+    <div class="options" id="options-container"></div>
+    <div id="message" style="margin-top:15px; color:var(--primary-dark); font-weight:bold; height:20px;"></div>
+    
+    <div class="nav-footer">
+        <button class="nav-btn" onclick="goBackToSetup()">🔄 설정 화면으로</button>
+    </div>
+</div>
+
+<div class="ad-container">
+    <p style="font-size: 11px; color: #666; margin-bottom: 12px;">"무료 서비스 유지를 위해 광고가 포함되어 있습니다. 🙏"</p>
+    <a id="main-link" href="" target="_blank" style="text-decoration: none;">
+        <div class="algo-bubble">
+            <span id="main-bubble"></span>
+            <span class="cta-text">내용 자세히 알아보기 ▶</span>
+        </div>
+    </a>
+    <p class="ad-notice">이 포스팅은 쿠팡 파트너스 활동의 일환으로 수수료를 제공받습니다.</p>
+</div>
+
+<div class="copyright">
+    Copyright 2026. <b>johnpark236-tech</b> All rights reserved.<br>
+    본 소프트웨어의 무단 복제, 수정 및 재배포를 금하며, 발견 시 법적 책임을 물을 수 있습니다.
+</div>
+
 <script>
-    // =========================================================================
-    // 💡여기에 이모지를 추가해서 '새로 올린' 구글 드라이브 링크를 넣어주세요!💡
+    /* 🛡️ 도메인 검증 및 출처 제어 고정 */
+    if (!window.location.hostname.includes("johnpark236-tech.github.io") && window.location.hostname !== "localhost") {
+        alert("이 프로그램은 무단 복제되어 사용할 수 없습니다.\n출처: johnpark236-tech");
+        window.location.href = "https://johnpark236-tech.github.io/MANNAL-4_ad/";
+    }
+
+    /* 📊 구글 스프레드시트 데이터베이스 링크 연동 구조 */
     const GOOGLE_DRIVE_LINK = "https://docs.google.com/spreadsheets/d/1bIPF2bnDDh2nY9VFAkzwSb-kinS1zNsa/edit?usp=sharing&ouid=101152576649647838712&rtpof=true&sd=true";
-    // =========================================================================
+    
     function getDriveId(url) {
         let match = url.match(/\/d\/(.+?)\//);
         if (match) return match[1];
@@ -234,263 +187,219 @@
         return "";
     }
     const FILE_ID = getDriveId(GOOGLE_DRIVE_LINK);
-    let wordData = [];
-    let stages = [];
-    let currentLang = 'en';
-    let backStyle = 'twin'; // 기본값: 쌍둥이
-    let currentStageIdx = 0;
-    let flippedCards = [];
-    let matchedCount = 0;
-    let tries = 0;
-    let timerInterval;
-    let seconds = 0;
-    let isLock = false;
-    let audioCtx = null;
+
+    /* 🛒 고정 광고 인벤토리 풀 */
+    const adInventory = [
+        { link: "https://link.coupang.com/a/eEL62a", msg: "공부하느라 목과 어깨가 뻐근하시죠? 😉<br>목 건강에 탁월한 <b>배도라지즙</b> 정보를 확인해보세요!" },
+        { link: "https://link.coupang.com/a/eEMFd8", msg: "열공한 후에는 달콤하고 시원한 힐링 충전! 🍧<br>맛있는 <b>서울 빙수팥</b> 특별 혜택을 확인해보세요!" },
+        { link: "https://link.coupang.com/a/eEMHcD", msg: "두뇌 회전과 집중력 향상엔 비타민 보충이 필수! ✨<br>영양 가득 <b>과채주스</b> 세트 구성을 확인해보세요!" },
+        { link: "https://link.coupang.com/a/eEMK2Z", msg: "공부방이나 업무 중에도 가볍고 쾌적하게! 👕<br>가성비 최고 <b>슬림 반팔 3종</b> 상품평을 확인해보세요!" }
+    ];
+
+    let currentAdIndex = 0; 
+    let secondsLeft = 180; 
+    let timer;
+    let wordData = [];         // 구글 시트에서 가져온 전체 원본 배열 데이터
+    let currentLang = 'vi';    // 사용자가 선택한 타겟 언어 변수 (기본값: vi)
+    let currentLevel = 1; 
+    let questionsToAnswer = 1; 
+    let currentQuestionCount = 0; 
+    let currentCorrectAnswer = "";
+
+    // 구글 차트 라이브러리 및 시트 콜백 정의
     google.charts.load('current', {packages: ['corechart']});
-    google.charts.setOnLoadCallback(initializeApp);
-    function initializeApp() {
-        document.querySelectorAll('.lang-btn').forEach(btn => btn.disabled = false);
+    google.charts.setOnLoadCallback(() => {
+        // 구글 시트 연동 라이브러리 로드가 끝나면 시작 버튼 활성화
+        const startBtn = document.getElementById('start-game-btn');
+        startBtn.disabled = false;
+        startBtn.innerText = "신나게 단어 마스터 시작하기! 🚀";
+    });
+
+    /* 🎨 실시간 배경색 핸들러 */
+    function changeBg(color) {
+        document.body.style.backgroundColor = color;
+        document.getElementById('bg-color-picker').value = color;
     }
-    // 뒷면 스타일 선택 처리
-    function setBackStyle(style) {
-        backStyle = style;
-        document.getElementById('back-twin').classList.toggle('active', style === 'twin');
-        document.getElementById('back-num').classList.toggle('active', style === 'num');
+
+    /* 🛒 광고 순환 로직 제어 함수 */
+    function updateAdDisplay() {
+        const ad = adInventory[currentAdIndex];
+        document.getElementById('main-bubble').innerHTML = ad.msg;
+        document.getElementById('main-link').href = ad.link;
+        document.getElementById('popup-msg').innerHTML = ad.msg;
+        document.getElementById('popup-link').href = ad.link;
     }
-    function startGame(langCode) {
-        // =====================================================================
-        // [수정: 모바일 브라우저 (iOS/Android) TTS 및 오디오 활성화 (Unlock) 추가]
-        // 스마트폰은 사용자의 터치(클릭) 이벤트 안에서 오디오/TTS를 한 번 초기화해야 작동합니다.
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-        if ('speechSynthesis' in window) {
-            // [수정] 빈 문자열('') 대신 공백 문자열(' ')을 사용하여 모바일 브라우저가
-            // 확실하게 유효한 음성 재생으로 인식하여 잠금을 풀도록 수정했습니다.
-            const unlockMsg = new SpeechSynthesisUtterance(' ');
-            unlockMsg.volume = 0; // 소리가 나지 않도록 볼륨을 0으로 설정
-            window.speechSynthesis.speak(unlockMsg);
-        }
-        // =====================================================================
+
+    function startAdTimer() {
+        clearInterval(timer);
+        timer = setInterval(() => {
+            secondsLeft--;
+            const m = Math.floor(secondsLeft / 60); 
+            const s = secondsLeft % 60;
+            document.getElementById('timer-display').innerText = `다음 보너스 타임까지: ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            if (secondsLeft <= 0) { 
+                document.getElementById('ad-popup').style.display = 'flex'; 
+                clearInterval(timer); 
+            }
+        }, 1000);
+    }
+
+    function closeAdPopup() {
+        document.getElementById('ad-popup').style.display = 'none';
+        currentAdIndex = (currentAdIndex + 1) % adInventory.length;
+        updateAdDisplay(); 
+        secondsLeft = 180; 
+        startAdTimer();
+    }
+
+    /* 🚀 게임 초기 설정 및 구글 시트 호출 요청 함수 */
+    function prepareGame() {
         const sheetName = document.getElementById('sheet-select').value;
-        currentLang = langCode;
-        document.getElementById('lang-modal').style.display = 'none';
-        
+        currentLang = document.getElementById('lang-select').value;
+
         if (!FILE_ID) {
-            alert("구글 드라이브 링크를 확인해 주세요.");
-            document.getElementById('lang-modal').style.display = 'flex';
+            alert("구글 시트 주소가 올바르지 않습니다. 코드를 다시 확인해주세요.");
             return;
         }
-        fetchSheetData(sheetName);
-    }
-    function fetchSheetData(sheetName) {
-        // A~F열 데이터를 확실하게 요청하고, 캐시를 무시합니다.
+
+        // 구글 쿼리를 통해 지정된 단원의 A~F열 추출
         const queryUrl = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&headers=1&tq=${encodeURIComponent("select A,B,C,D,E,F")}&nocache=${new Date().getTime()}`;
         const query = new google.visualization.Query(queryUrl);
-        query.send(handleQueryResponse);
+        query.send(handleSheetResponse);
     }
-    function handleQueryResponse(response) {
+
+    /* 📊 가져온 구글 시트 데이터 정제 가공 및 처리 */
+    function handleSheetResponse(response) {
         if (response.isError()) {
-            alert("데이터 로딩 실패! 링크나 구글 드라이브 권한을 확인해주세요.");
-            document.getElementById('lang-modal').style.display = 'flex';
+            alert("스프레드시트 데이터 로딩 실패! 공유 권한 또는 단원 이름을 확인하세요.");
             return;
         }
+
         const dt = response.getDataTable();
         const rows = dt.getNumberOfRows();
         const cols = dt.getNumberOfColumns();
         wordData = [];
+
         for (let i = 0; i < rows; i++) {
-            const ko = dt.getValue(i, 0);
-            if (!ko) continue;
-            
-            // F열(인덱스 5) 이모지를 가져옵니다. 빈칸이면 💡 적용
+            const koWord = dt.getValue(i, 0); // A열: 한국어 단어
+            if (!koWord) continue;
+
+            // F열(인덱스 5) 이모지 처리 (비어있으면 기본 전구 💡 적용)
             let emojiValue = '💡';
             if (cols > 5 && dt.getValue(i, 5) != null) {
                 let fetchedEmoji = dt.getValue(i, 5).toString().trim();
-                if (fetchedEmoji !== '') {
-                    emojiValue = fetchedEmoji;
-                }
+                if (fetchedEmoji !== '') emojiValue = fetchedEmoji;
             }
+
             wordData.push({
-                ko: ko,
-                vi: (cols > 1 && dt.getValue(i, 1)) ? dt.getValue(i, 1) : '',
-                uz: (cols > 2 && dt.getValue(i, 2)) ? dt.getValue(i, 2) : '',
-                mn: (cols > 3 && dt.getValue(i, 3)) ? dt.getValue(i, 3) : '',
-                en: (cols > 4 && dt.getValue(i, 4)) ? dt.getValue(i, 4) : '',
+                ko: koWord.toString().trim(),
+                vi: (cols > 1 && dt.getValue(i, 1)) ? dt.getValue(i, 1).toString().trim() : '', // B열
+                uz: (cols > 2 && dt.getValue(i, 2)) ? dt.getValue(i, 2).toString().trim() : '', // C열
+                mn: (cols > 3 && dt.getValue(i, 3)) ? dt.getValue(i, 3).toString().trim() : '', // D열
+                en: (cols > 4 && dt.getValue(i, 4)) ? dt.getValue(i, 4).toString().trim() : '', // E열
                 emoji: emojiValue
             });
         }
-        generateStages(wordData.length);
-        currentStageIdx = 0;
-        initGame();
-    }
-    function generateStages(totalWords) {
-        stages = [];
-        let p = 5;
-        while (p <= totalWords) {
-            stages.push({ pairs: p, cols: p <= 5 ? 3 : (p <= 10 ? 4 : 5) });
-            p += 5;
+
+        // 타겟 언어 데이터가 누락되지 않은 항목만 필터링
+        wordData = wordData.filter(item => item[currentLang] !== '');
+
+        if (wordData.length < 4) {
+            alert("선택한 단원에 퀴즈를 풀 수 있는 데이터가 부족합니다. (최소 4개 이상의 단어 필요)");
+            return;
         }
-        if (totalWords % 5 !== 0 && totalWords > (p - 5)) stages.push({ pairs: totalWords, cols: 5 });
-        if (stages.length === 0 && totalWords > 0) stages.push({ pairs: totalWords, cols: 3 });
-    }
-    function initGame() {
-        const stage = stages[currentStageIdx];
-        const board = document.getElementById('game-board');
-        document.getElementById('stage-num').innerText = currentStageIdx + 1;
-        board.innerHTML = ''; matchedCount = 0; flippedCards = []; isLock = false;
-        board.style.gridTemplateColumns = `repeat(${stage.cols}, 1fr)`;
-        const selected = [...wordData].sort(() => 0.5 - Math.random()).slice(0, stage.pairs);
-        const deck = [...selected, ...selected].sort(() => 0.5 - Math.random());
+
+        // 화면 전환 처리 및 게임 작동 시작
+        document.getElementById("intro-screen").style.display = "none";
+        document.getElementById("app").style.display = "block";
         
-        document.getElementById('remains').innerText = stage.pairs;
-        deck.forEach((item, idx) => {
-            const cardEl = document.createElement('div');
-            cardEl.classList.add('card');
-            cardEl.dataset.ko = item.ko;
-            // 뒷면 스타일 적용
-            let backContent = '';
-            if(backStyle === 'twin') {
-                backContent = `<div class="back-emoji">👦👧</div>`;
-            } else {
-                backContent = `<div class="back-num">${idx + 1}</div>`;
-            }
-            cardEl.innerHTML = `
-                <div class="card-back">${backContent}</div>
-                <div class="card-front">
-                    <div class="card-img">${item.emoji}</div>
-                    <div class="card-ko">${item.ko}</div>
-                    <div class="card-lang">${item[currentLang]}</div>
-                </div>
-            `;
-            cardEl.onclick = () => { if(!audioCtx) playXylophone(); flipCard(cardEl); };
-            board.appendChild(cardEl);
-        });
-        if (currentStageIdx === 0) {
-            tries = 0; document.getElementById('tries').innerText = '0';
-            startTimer();
+        currentLevel = 1;
+        questionsToAnswer = 1;
+        currentQuestionCount = 0;
+        
+        generateWordQuestion();
+        startAdTimer();
+    }
+
+    /* 🎯 4지선다형 객관식 퀴즈 문항 자동 동적 빌드 함수 */
+    function generateWordQuestion() {
+        document.getElementById("message").innerText = "";
+        document.getElementById("level-display").innerText = `Level ${currentLevel}`;
+        document.getElementById("progress-display").innerText = `현재 레벨 진행도: ${currentQuestionCount} / ${questionsToAnswer}`;
+
+        // 무작위로 하나의 정답 행 아이템 선정
+        const correctTarget = wordData[Math.floor(Math.random() * wordData.length)];
+        currentCorrectAnswer = correctTarget[currentLang];
+
+        // 퀴즈 텍스트 영역 갱신 (A열 한국어 단어 및 F열 이모지 바인딩)
+        document.getElementById("word-display").innerHTML = `${correctTarget.emoji} ${correctTarget.ko}`;
+
+        // 오답 리스트 추출 풀 구성 (정답을 제외한 해당 언어 데이터들)
+        let wrongPool = wordData
+            .filter(item => item[currentLang] !== currentCorrectAnswer)
+            .map(item => item[currentLang]);
+        
+        // 중복 오답 텍스트가 존재할 수 있으므로 Set 구조로 유니크화 시킨 후 셔플
+        wrongPool = [...new Set(wrongPool)].sort(() => 0.5 - Math.random());
+        
+        // 오답 풀에서 3개 선택
+        let selectedWrongs = wrongPool.slice(0, 3);
+
+        // 만약 풀 데이터가 모자라 예외 상황이 발생할 경우를 위한 방어 코드
+        while(selectedWrongs.length < 3) {
+            selectedWrongs.push("정답 외 옵션 " + (selectedWrongs.length + 1));
         }
-    }
-    function playXylophone() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const notes = [523.25, 659.25, 783.99];
-        notes.forEach((f, i) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.1);
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime + i * 0.1);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.4);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(audioCtx.currentTime + i * 0.1); osc.stop(audioCtx.currentTime + i * 0.1 + 0.5);
+
+        // 정답 1개 + 오답 3개 병합 후 무작위 재배치 정렬 무작위 무력화
+        let finalFourOptions = [currentCorrectAnswer, ...selectedWrongs].sort(() => 0.5 - Math.random());
+
+        // DOM 요소를 생성하여 보기 컨테이너 엘리먼트 배치
+        const container = document.getElementById("options-container");
+        container.innerHTML = "";
+
+        finalFourOptions.forEach((optionText, idx) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = `${idx + 1}. ${optionText}`;
+            btn.onclick = () => verifyUserSelection(optionText);
+            container.appendChild(btn);
         });
     }
-    
-    // [수정] 모바일 브라우저 음성 잘림/취소 현상 수정을 위해 speakWord 함수 변경
-    function speakWord(text) {
-        if ('speechSynthesis' in window) {
-            // 재생 중일 때만 cancel을 호출하도록 방어 코드 추가
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-            }
+
+    /* 🔍 유저 정답 확인 연산 로직 함수 */
+    function verifyUserSelection(selectedText) {
+        if (selectedText === currentCorrectAnswer) {
+            currentQuestionCount++;
+            document.getElementById("message").style.color = "#03c75a";
+            document.getElementById("message").innerText = "정답입니다! 💕 대단해요!";
             
-            // 모바일 브라우저 버그 우회: cancel 직후 speak를 하면 씹히는 현상을 막기 위해
-            // 아주 짧은 시간(50ms) 뒤에 음성 재생을 요청합니다.
             setTimeout(() => {
-                const msg = new SpeechSynthesisUtterance(text.replace(/ \(.*\)/, ""));
-                msg.lang = 'ko-KR'; 
-                msg.pitch = 1.5; 
-                msg.rate = 1.2;
-                window.speechSynthesis.speak(msg);
-            }, 50);
+                if (currentQuestionCount >= questionsToAnswer) {
+                    currentLevel++;
+                    questionsToAnswer = currentLevel; // 레벨이 올라갈수록 클리어 요구 조건 개수 증가
+                    currentQuestionCount = 0;
+                    alert(`🎉 축하합니다! 다음 레벨 [Level ${currentLevel}]로 진급합니다.`);
+                }
+                generateWordQuestion();
+            }, 900);
+        } else {
+            document.getElementById("message").style.color = "#FF1493";
+            document.getElementById("message").innerText = "앗! 틀렸어요. 처음부터 다시 도전해보세요! 😢";
+            currentQuestionCount = 0; // 오답 시 현재 레벨의 게이지 초기화 리셋
+            setTimeout(generateWordQuestion, 1200);
         }
     }
 
-    function flipCard(card) {
-        if (isLock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
-        speakWord(card.dataset.ko);
-        card.classList.add('flipped');
-        flippedCards.push(card);
-        if (flippedCards.length === 2) {
-            tries++; document.getElementById('tries').innerText = tries;
-            checkMatch();
-        }
+    /* 🔄 초기 화면으로 백헤딩 탈출 처리 함수 */
+    function goBackToSetup() {
+        document.getElementById("app").style.display = "none";
+        document.getElementById("intro-screen").style.display = "block";
+        clearInterval(timer);
     }
-    function checkMatch() {
-        isLock = true;
-        const [c1, c2] = flippedCards;
-        if (c1.dataset.ko === c2.dataset.ko) {
-            playXylophone();
-            setTimeout(() => {
-                c1.classList.add('matched'); c2.classList.add('matched');
-                matchedCount += 2;
-                document.getElementById('remains').innerText = (stages[currentStageIdx].pairs * 2 - matchedCount) / 2;
-                flippedCards = []; isLock = false;
-                if (matchedCount === stages[currentStageIdx].pairs * 2) nextStage();
-            }, 500);
-        } else {
-            setTimeout(() => {
-                c1.classList.remove('flipped'); c2.classList.remove('flipped');
-                flippedCards = []; isLock = false;
-            }, 800);
-        }
-    }
-    function nextStage() {
-        if (currentStageIdx < stages.length - 1) {
-            showToast(`STAGE ${currentStageIdx + 1} CLEAR!`);
-            currentStageIdx++;
-            setTimeout(initGame, 1500);
-        } else {
-            clearInterval(timerInterval);
-            speakWord("마스터 클리어! 축하합니다!");
-            showToast("🎊 MASTER CLEAR!");
-            setTimeout(confettiEffect, 500);
-        }
-    }
-    function startTimer() {
-        clearInterval(timerInterval); seconds = 0;
-        timerInterval = setInterval(() => {
-            seconds++;
-            const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-            const s = String(seconds % 60).padStart(2, '0');
-            document.getElementById('timer').innerText = `${m}:${s}`;
-        }, 1000);
-    }
-    function confirmReset() {
-        if (confirm("설정 화면으로 돌아가시겠습니까?")) {
-            clearInterval(timerInterval);
-            document.getElementById('lang-modal').style.display = 'flex';
-        }
-    }
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg; t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 2500);
-    }
-    function shareResult() {
-        const time = document.getElementById('timer').innerText;
-        const tryCnt = document.getElementById('tries').innerText;
-        const text = `[MANNAL KOREAN MASTER]\n⏱ 시간: ${time}\n🔢 시도: ${tryCnt}회\n학습 단원: ${document.getElementById('sheet-select').value}\n함께 한국어 공부해요!`;
-        if (navigator.share) {
-            navigator.share({ title: 'Korean Card Master', text: text, url: window.location.href });
-        } else {
-            navigator.clipboard.writeText(text).then(() => showToast("✅ 기록이 복사되었습니다!"));
-        }
-    }
-    function confettiEffect() {
-        const time = document.getElementById('timer').innerText;
-        const tryCnt = document.getElementById('tries').innerText;
-        if(confirm(`축하합니다! 모든 스테이지 클리어!\n최종 시간: ${time}\n총 시도: ${tryCnt}회\n\n기록을 복사하고 종료하시겠습니까?`)) {
-            navigator.clipboard.writeText(`시간: ${time}, 시도: ${tryCnt}`).then(() => {
-                alert("기록 복사 완료!");
-                window.location.href = "about:blank";
-            });
-        }
-    }
+
+    window.onload = () => { 
+        updateAdDisplay(); 
+    };
 </script>
 </body>
 </html>
