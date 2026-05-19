@@ -76,7 +76,7 @@
     <h1>🌸 MANNAL 단어 마스터 🌸</h1>
     <p style="margin-bottom: 20px; color:#666; font-size:15px;">단원을 선택하고 다국어 단어 퀴즈에 도전하세요!</p>
     
-    <h3>1. 학습 단원 선택</h3>
+    <h3>1. 과</h3>
     <select id="sheet-select" class="select-box">
         <option value="all">전체 단어 (all)</option>
         <option value="1과 1항">1과 1항</option><option value="1과 2항">1과 2항</option>
@@ -97,7 +97,7 @@
         <option value="16과 1항">16과 1항</option><option value="16과 2항">16과 2항</option>
     </select>
 
-    <h3>2. 학습 목적 언어 선택</h3>
+    <h3>2. 언어.</h3>
     <select id="lang-select" class="select-box">
         <option value="vi">베트남어 (Tiếng Việt)</option>
         <option value="uz">우즈베크어 (O'zbekcha)</option>
@@ -106,7 +106,7 @@
     </select>
 
     <div class="color-picker-section">
-        <div style="font-size:14px; color:#444; margin-bottom:8px; font-weight:bold; text-align:left;">🎨 배경 테마 색상 설정</div>
+        <div style="font-size:14px; color:#444; margin-bottom:8px; font-weight:bold; text-align:left;">🎨 색깔</div>
         <div class="color-palette">
             <div class="color-chip" style="background-color: #FFF0F5;" onclick="changeBg('#FFF0F5')"></div>
             <div class="color-chip" style="background-color: #E0F8F5;" onclick="changeBg('#E0F8F5')"></div>
@@ -210,7 +210,7 @@
     google.charts.setOnLoadCallback(() => {
         const startBtn = document.getElementById('start-game-btn');
         startBtn.disabled = false;
-        startBtn.innerText = "신나게 단어 마스터 시작하기! 🚀";
+        startBtn.innerText = "시작! 🚀";
     });
 
     /* 🎨 실시간 배경색 핸들러 */
