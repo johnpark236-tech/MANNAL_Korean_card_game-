@@ -35,16 +35,16 @@
         #ad-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 10000; flex-direction: column; justify-content: center; align-items: center; }
         .popup-content { background: white; padding: 30px; border-radius: 25px; width: 85%; max-width: 320px; text-align: center; }
 
-        /* 🟢🔴 정답 및 오답 전용 팝업 모달 스타일 레이아웃 (image_15ae4a.png 완벽 이식) */
+        /* 🟢🔴 정답, 오답, 레벨업 공용 팝업 모달 스타일 레이아웃 (image_15ae4a.png 양식 완전 이식) */
         #result-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 20000; justify-content: center; align-items: center; }
         .result-content { background: white; padding: 25px; border-radius: 25px; width: 75%; max-width: 260px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); animation: popScale 0.25s ease-out; }
         @keyframes popScale { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
         .result-icon-box { font-size: 55px; line-height: 1; margin-bottom: 12px; }
-        .result-text { font-size: 22px; font-weight: bold; margin-bottom: 20px; }
+        .result-text { font-size: 20px; font-weight: bold; margin-bottom: 20px; line-height: 1.4; }
         .result-confirm-btn { font-family: 'Jua', sans-serif; color: white; border: none; padding: 12px 0; border-radius: 15px; font-size: 18px; cursor: pointer; width: 100%; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15); }
         
-        /* 정오답 상태별 확장 스킨 클래스 명세 */
+        /* 정오답 및 레벨업 상태별 확장 스킨 클래스 명세 */
         .result-content.correct-style { border: 4px solid #a3e9a4; background-color: #f1fbf1; }
         .result-content.correct-style .result-text { color: #2e7d32; }
         .result-content.correct-style .result-confirm-btn { background-color: #4caf50; }
@@ -55,10 +55,16 @@
         .result-content.incorrect-style .result-confirm-btn { background-color: #e53935; }
         .result-content.incorrect-style .result-confirm-btn:hover { background-color: #b71c1c; }
 
+        /* ✨ [추가] 축하 상자 레벨업 비주얼 테마 클래스 명세 (image_216986.png 커스텀 모달 업그레이드) */
+        .result-content.level-up-style { border: 4px solid #ffd54f; background-color: #fffde7; }
+        .result-content.level-up-style .result-text { color: #f57f17; }
+        .result-content.level-up-style .result-confirm-btn { background-color: #ffb300; }
+        .result-content.level-up-style .result-confirm-btn:hover { background-color: #ff8f00; }
+
         /* 공통 UI 요소 */
         .select-box { font-family: 'Jua', sans-serif; width: 100%; padding: 12px; font-size: 16px; border-radius: 15px; border: 2px solid var(--primary-color); background-color: white; color: #333; outline: none; margin-bottom: 10px; box-sizing: border-box; }
         
-        /* ⏰ [추가] 시간 설정 숫자 입력 상자 전용 스타일 명세 */
+        /* ⏰ 시간 설정 숫자 입력 상자 전용 스타일 명세 */
         .input-box { font-family: 'Jua', sans-serif; width: 100%; padding: 12px; font-size: 16px; border-radius: 15px; border: 2px solid var(--primary-color); background-color: white; color: #333; outline: none; margin-bottom: 10px; box-sizing: border-box; text-align: center; }
         
         .start-btn { font-family: 'Jua', sans-serif; background: var(--primary-color); color: white; border: none; padding: 14px; border-radius: 20px; font-size: 18px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(255, 105, 180, 0.3); margin-top: 10px; width: 100%; }
@@ -168,7 +174,7 @@
     <div id="result-card-inner" class="result-content">
         <div id="result-icon" class="result-icon-box">✔️</div>
         <div id="result-message" class="result-text">정답입니다!</div>
-        <button class="result-confirm-btn" onclick="handleResultModalConfirm()">확인</button>
+        <button id="result-action-btn" class="result-confirm-btn" onclick="handleResultModalConfirm()">확인</button>
     </div>
 </div>
 
@@ -202,7 +208,7 @@
 
 <div class="copyright">
     Copyright 2026. <b>johnpark236-tech</b> All rights reserved.<br>
-    본 소프트웨어의 무단 복제, 수정 및 재배포를 금하며, 발견 시 법적 책임을 물을 수 있습니다.
+    본 소프트웨어의 무단 복제, 수정 및 재배포를 금하며, 발견 시 법적 책임을물을 수 있습니다.
 </div>
 
 <script>
@@ -232,8 +238,7 @@
     ];
 
     let currentAdIndex = 0; 
-    /* ⏰ [수정] 사용자의 가변 인풋에 동조할 수 있도록 전역 타이머 관리 초 설정 */
-    let maxSeconds = 300; // 기본값 300초(5분)
+    let maxSeconds = 300; 
     let secondsLeft = 300; 
     let timer;
     let wordData = [];         
@@ -247,8 +252,9 @@
     let quizHistory = []; 
     let currentQuestionInfo = { ko: "", target: "" };
     
-    /* 🟢🔴 모달 콜백 동기화 제어 변수 */
+    /* 🟢🔴 모달 제어용 내부 상태 값 스위치 */
     let isModalCorrectState = false;
+    let isLevelUpPending = false;
 
     // 구글 차트 라이브러리 및 시트 콜백 정의
     google.charts.load('current', {packages: ['corechart']});
@@ -322,7 +328,6 @@
         });
     }
 
-    /* ⏰ [수정] 사용자가 설정한 가변 분 단위 시간에 맞춰 상단 타이머 텍스트 디스플레이 제어 */
     function displayTimerText() {
         const m = Math.floor(secondsLeft / 60); 
         const s = secondsLeft % 60;
@@ -335,9 +340,7 @@
             secondsLeft--;
             displayTimerText();
             if (secondsLeft <= 0) { 
-                /* ⏰ 사용자가 설정한 분이 경과하면 실시간 리포트 복사 작동 */
                 copyReportToClipboard();
-
                 currentAdIndex = (currentAdIndex + 1) % adInventory.length;
                 updateAdDisplay();
                 document.getElementById('ad-popup').style.display = 'flex'; 
@@ -348,7 +351,6 @@
 
     function closeAdPopup() {
         document.getElementById('ad-popup').style.display = 'none';
-        /* ⏰ [수정] 사용자가 사전에 인풋창에 선언해둔 맞춤 초 단위값으로 초기화 리셋 */
         secondsLeft = maxSeconds; 
         displayTimerText();
         startAdTimer();
@@ -359,26 +361,23 @@
         const sheetName = document.getElementById('sheet-select').value;
         currentLang = document.getElementById('lang-select').value;
         
-        /* ⏰ [추가] 사용자가 커스텀 입력박스에 설정한 값 읽어오기 및 유효성 방어 계산 */
         let userMinutes = parseInt(document.getElementById('user-timer-input').value, 10);
         if (isNaN(userMinutes) || userMinutes < 1) {
-            userMinutes = 5; // 비정상 입력일 경우 디폴트 5분 강제 복귀
+            userMinutes = 5; 
             document.getElementById('user-timer-input').value = 5;
         }
-        maxSeconds = userMinutes * 60; // 분단위 데이터를 초단위로 환산
-        secondsLeft = maxSeconds;      // 타이머 데이터 동기화
-        displayTimerText();            // 런타임 탑 레이어 바 반영
+        maxSeconds = userMinutes * 60; 
+        secondsLeft = maxSeconds;      
+        displayTimerText();            
 
         quizHistory = [];
 
-        /* 🎯 유저가 선택한 과(기본 노출 기준)에 맞추어 광고 인덱스를 강제 인덱싱 */
         if (sheetName === "all") {
             currentAdIndex = 0; 
         } else {
             const match = sheetName.match(/\d+/);
             const chapterNum = match ? parseInt(match[0], 10) : 0;
             
-            /* 이미지 조건표에 맞추어 정확하게 매핑 분기 */
             if (chapterNum >= 1 && chapterNum <= 5) {
                 currentAdIndex = 0; 
             } else if (chapterNum >= 6 && chapterNum <= 14) {
@@ -400,7 +399,6 @@
         query.send(handleSheetResponse);
     }
 
-    /* 📊 가져온 구글 시트 데이터 정제 가공 및 처리 */
     function handleSheetResponse(response) {
         if (response.isError()) {
             alert("스프레드시트 데이터 로딩 실패! 공유 권한 또는 단원 이름을 확인하세요.");
@@ -501,52 +499,82 @@
         });
 
         isModalCorrectState = isUserCorrect;
+        isLevelUpPending = false; // 플래그 초기화
+
         const modal = document.getElementById("result-popup");
         const cardInner = document.getElementById("result-card-inner");
         const iconNode = document.getElementById("result-icon");
         const textNode = document.getElementById("result-message");
+        const actionBtn = document.getElementById("result-action-btn");
 
+        // 정답을 맞혔을 때 다음 레벨 달성 유무 사전 판별 계산
         if (isUserCorrect) {
             cardInner.className = "result-content correct-style";
             iconNode.innerText = "✔️";
             textNode.innerText = "정답입니다!";
+            
+            // 임시 카운트를 계산하여 진급 임계치 도달 여부 확인
+            if (currentQuestionCount + 1 >= questionsToAnswer) {
+                isLevelUpPending = true;
+            }
         } else {
             cardInner.className = "result-content incorrect-style";
             iconNode.innerText = "❌";
             textNode.innerText = "오답입니다.";
         }
         
+        // 정오답 모달 활성화 노출
+        actionBtn.setAttribute("onclick", "handleResultModalConfirm()");
         modal.style.display = "flex";
     }
 
     /* 🟢🔴 정답/오답 팝업 내부의 확인 버튼 클릭 시 실질적 트리거 작동부 */
     function handleResultModalConfirm() {
-        document.getElementById("result-popup").style.display = "none";
-
         if (isModalCorrectState) {
             currentQuestionCount++;
-            if (currentQuestionCount >= questionsToAnswer) {
+            
+            /* ✨ [업데이트] 정답 확인 창을 닫은 직후, 레벨업 조건 충족 시 커스텀 축하 모달로 즉시 스위칭 */
+            if (isLevelUpPending) {
+                isLevelUpPending = false; // 플래그 리셋
                 currentLevel++;
                 questionsToAnswer = currentLevel; 
                 currentQuestionCount = 0;
-                alert(`🎉 축하합니다! 다음 레벨 [Level ${currentLevel}]로 진급합니다.`);
+
+                const cardInner = document.getElementById("result-card-inner");
+                const iconNode = document.getElementById("result-icon");
+                const textNode = document.getElementById("result-message");
+                const actionBtn = document.getElementById("result-action-btn");
+
+                // 레벨업 스킨 양식으로 모달 콘텐츠 리모델링 (image_216986.png 양식 대치)
+                cardInner.className = "result-content level-up-style";
+                iconNode.innerText = "🎉";
+                textNode.innerText = `축하합니다!<br>다음 레벨 [Level ${currentLevel}]로 진급합니다.`;
+                
+                // 버튼 이벤트를 레벨업 전용 종료 함수로 변경
+                actionBtn.setAttribute("onclick", "handleLevelUpModalConfirm()");
+                return; // 모달창을 닫지 않고 유지한 채 리턴
             }
             generateWordQuestion();
         } else {
             currentQuestionCount = 0; 
             generateWordQuestion();
         }
+        // 기본 닫기 처리
+        document.getElementById("result-popup").style.display = "none";
+    }
+
+    /* ✨ [추가] 레벨업 모달창 전용 [확인] 처리 함수 */
+    function handleLevelUpModalConfirm() {
+        document.getElementById("result-popup").style.display = "none";
+        generateWordQuestion(); // 새 레벨 문항 생성 후 플레이 재개
     }
 
     /* 🔄 초기 화면으로 백헤딩 탈출 처리 함수 */
     function goBackToSetup() {
         copyReportToClipboard();
-        
         document.getElementById("app").style.display = "none";
         document.getElementById("intro-screen").style.display = "block";
         clearInterval(timer);
-        
-        /* ⏰ [수정] 복귀 시에도 사용자가 기존에 인풋창에 적어두었던 시간 스펙으로 다시 백업 노출 처리 */
         secondsLeft = maxSeconds;
         displayTimerText();
     }
