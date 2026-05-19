@@ -188,19 +188,18 @@
     }
     const FILE_ID = getDriveId(GOOGLE_DRIVE_LINK);
 
-    /* 🛒 고정 광고 인벤토리 풀 */
+    /* 🛒 [업데이트] 새로 지정된 교재 광고 데이터 3종 인벤토리 */
     const adInventory = [
-        { link: "https://link.coupang.com/a/eEL62a", msg: "공부하느라 목과 어깨가 뻐근하시죠? 😉<br>목 건강에 탁월한 <b>배도라지즙</b> 정보를 확인해보세요!" },
-        { link: "https://link.coupang.com/a/eEMFd8", msg: "열공한 후에는 달콤하고 시원한 힐링 충전! 🍧<br>맛있는 <b>서울 빙수팥</b> 특별 혜택을 확인해보세요!" },
-        { link: "https://link.coupang.com/a/eEMHcD", msg: "두뇌 회전과 집중력 향상엔 비타민 보충이 필수! ✨<br>영양 가득 <b>과채주스</b> 세트 구성을 확인해보세요!" },
-        { link: "https://link.coupang.com/a/eEMK2Z", msg: "공부방이나 업무 중에도 가볍고 쾌적하게! 👕<br>가성비 최고 <b>슬림 반팔 3종</b> 상품평을 확인해보세요!" }
+        { link: "https://link.coupang.com/a/dR1u21gzSu", msg: "한국어 기초 다지기 강력 추천! 📚<br><b>[1급_1과~8과] 서울대 한국어1A Student Book + Workbook SET</b> 교재 정보를 확인해보세요!" },
+        { link: "https://link.coupang.com/a/dR1A75FhN6", msg: "실력 향상을 위한 다음 필수 코스! ✨<br><b>[1급_9과~16과] 서울대 한국어 플러스 1B Student Book + Workbook SET</b> 혜택을 확인해보세요!" },
+        { link: "https://link.coupang.com/a/dR2p3ImcMK", msg: "중급 도약을 위한 최고의 선택! 🚀<br><b>[2급_1과~8과] 서울대 한국어 플러스 2A Student Book + Workbook SET</b> 정보를 확인해보세요!" }
     ];
 
     let currentAdIndex = 0; 
     let secondsLeft = 180; 
     let timer;
-    let wordData = [];         // 구글 시트에서 가져온 전체 원본 배열 데이터
-    let currentLang = 'vi';    // 사용자가 선택한 타겟 언어 변수 (기본값: vi)
+    let wordData = [];         
+    let currentLang = 'vi';    
     let currentLevel = 1; 
     let questionsToAnswer = 1; 
     let currentQuestionCount = 0; 
@@ -209,7 +208,6 @@
     // 구글 차트 라이브러리 및 시트 콜백 정의
     google.charts.load('current', {packages: ['corechart']});
     google.charts.setOnLoadCallback(() => {
-        // 구글 시트 연동 라이브러리 로드가 끝나면 시작 버튼 활성화
         const startBtn = document.getElementById('start-game-btn');
         startBtn.disabled = false;
         startBtn.innerText = "신나게 단어 마스터 시작하기! 🚀";
@@ -221,7 +219,7 @@
         document.getElementById('bg-color-picker').value = color;
     }
 
-    /* 🛒 광고 순환 로직 제어 함수 */
+    /* 🛒 광고 출력 컨트롤 유닛 */
     function updateAdDisplay() {
         const ad = adInventory[currentAdIndex];
         document.getElementById('main-bubble').innerHTML = ad.msg;
@@ -238,6 +236,9 @@
             const s = secondsLeft % 60;
             document.getElementById('timer-display').innerText = `다음 보너스 타임까지: ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
             if (secondsLeft <= 0) { 
+                // 3분 도달 시 순차적으로 광고 인덱스를 순환시킨 후 팝업 출력
+                currentAdIndex = (currentAdIndex + 1) % adInventory.length;
+                updateAdDisplay();
                 document.getElementById('ad-popup').style.display = 'flex'; 
                 clearInterval(timer); 
             }
@@ -246,23 +247,38 @@
 
     function closeAdPopup() {
         document.getElementById('ad-popup').style.display = 'none';
-        currentAdIndex = (currentAdIndex + 1) % adInventory.length;
-        updateAdDisplay(); 
         secondsLeft = 180; 
         startAdTimer();
     }
 
-    /* 🚀 게임 초기 설정 및 구글 시트 호출 요청 함수 */
+    /* 🚀 게임 초기 설정 및 과별 맞춤형 광고 강제 트리거 지정 */
     function prepareGame() {
         const sheetName = document.getElementById('sheet-select').value;
         currentLang = document.getElementById('lang-select').value;
+
+        /* 🎯 [업데이트] 실행 직후 선택된 과에 맞춰 타겟 광고 타겟팅 */
+        if (sheetName === "all") {
+            currentAdIndex = 0; // 전체 선택 시 기본 1번 지정
+        } else {
+            // 과 이름 문자열에서 정수 숫자 파싱 추출 (예: "1과 1항" -> 1)
+            const chapterNum = parseInt(sheetName.replace(/[^0-9]/g, "").substring(0, 2));
+            if (chapterNum >= 1 && chapterNum <= 5) {
+                currentAdIndex = 0; // 1과 ~ 5과는 1번 광고
+            } else if (chapterNum >= 6 && chapterNum <= 14) {
+                currentAdIndex = 1; // 6과 ~ 14과는 2번 광고
+            } else if (chapterNum >= 15 && chapterNum <= 16) {
+                currentAdIndex = 2; // 15과 ~ 16과는 3번 광고
+            }
+        }
+        
+        // 런타임에 첫 맞춤 타겟 광고 정보 렌더링
+        updateAdDisplay();
 
         if (!FILE_ID) {
             alert("구글 시트 주소가 올바르지 않습니다. 코드를 다시 확인해주세요.");
             return;
         }
 
-        // 구글 쿼리를 통해 지정된 단원의 A~F열 추출
         const queryUrl = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&headers=1&tq=${encodeURIComponent("select A,B,C,D,E,F")}&nocache=${new Date().getTime()}`;
         const query = new google.visualization.Query(queryUrl);
         query.send(handleSheetResponse);
@@ -281,10 +297,9 @@
         wordData = [];
 
         for (let i = 0; i < rows; i++) {
-            const koWord = dt.getValue(i, 0); // A열: 한국어 단어
+            const koWord = dt.getValue(i, 0); 
             if (!koWord) continue;
 
-            // F열(인덱스 5) 이모지 처리 (비어있으면 기본 전구 💡 적용)
             let emojiValue = '💡';
             if (cols > 5 && dt.getValue(i, 5) != null) {
                 let fetchedEmoji = dt.getValue(i, 5).toString().trim();
@@ -293,15 +308,14 @@
 
             wordData.push({
                 ko: koWord.toString().trim(),
-                vi: (cols > 1 && dt.getValue(i, 1)) ? dt.getValue(i, 1).toString().trim() : '', // B열
-                uz: (cols > 2 && dt.getValue(i, 2)) ? dt.getValue(i, 2).toString().trim() : '', // C열
-                mn: (cols > 3 && dt.getValue(i, 3)) ? dt.getValue(i, 3).toString().trim() : '', // D열
-                en: (cols > 4 && dt.getValue(i, 4)) ? dt.getValue(i, 4).toString().trim() : '', // E열
+                vi: (cols > 1 && dt.getValue(i, 1)) ? dt.getValue(i, 1).toString().trim() : '', 
+                uz: (cols > 2 && dt.getValue(i, 2)) ? dt.getValue(i, 2).toString().trim() : '', 
+                mn: (cols > 3 && dt.getValue(i, 3)) ? dt.getValue(i, 3).toString().trim() : '', 
+                en: (cols > 4 && dt.getValue(i, 4)) ? dt.getValue(i, 4).toString().trim() : '', 
                 emoji: emojiValue
             });
         }
 
-        // 타겟 언어 데이터가 누락되지 않은 항목만 필터링
         wordData = wordData.filter(item => item[currentLang] !== '');
 
         if (wordData.length < 4) {
@@ -309,7 +323,6 @@
             return;
         }
 
-        // 화면 전환 처리 및 게임 작동 시작
         document.getElementById("intro-screen").style.display = "none";
         document.getElementById("app").style.display = "block";
         
@@ -327,33 +340,24 @@
         document.getElementById("level-display").innerText = `Level ${currentLevel}`;
         document.getElementById("progress-display").innerText = `현재 레벨 진행도: ${currentQuestionCount} / ${questionsToAnswer}`;
 
-        // 무작위로 하나의 정답 행 아이템 선정
         const correctTarget = wordData[Math.floor(Math.random() * wordData.length)];
         currentCorrectAnswer = correctTarget[currentLang];
 
-        // 퀴즈 텍스트 영역 갱신 (A열 한국어 단어 및 F열 이모지 바인딩)
         document.getElementById("word-display").innerHTML = `${correctTarget.emoji} ${correctTarget.ko}`;
 
-        // 오답 리스트 추출 풀 구성 (정답을 제외한 해당 언어 데이터들)
         let wrongPool = wordData
             .filter(item => item[currentLang] !== currentCorrectAnswer)
             .map(item => item[currentLang]);
         
-        // 중복 오답 텍스트가 존재할 수 있으므로 Set 구조로 유니크화 시킨 후 셔플
         wrongPool = [...new Set(wrongPool)].sort(() => 0.5 - Math.random());
-        
-        // 오답 풀에서 3개 선택
         let selectedWrongs = wrongPool.slice(0, 3);
 
-        // 만약 풀 데이터가 모자라 예외 상황이 발생할 경우를 위한 방어 코드
         while(selectedWrongs.length < 3) {
             selectedWrongs.push("정답 외 옵션 " + (selectedWrongs.length + 1));
         }
 
-        // 정답 1개 + 오답 3개 병합 후 무작위 재배치 정렬 무작위 무력화
         let finalFourOptions = [currentCorrectAnswer, ...selectedWrongs].sort(() => 0.5 - Math.random());
 
-        // DOM 요소를 생성하여 보기 컨테이너 엘리먼트 배치
         const container = document.getElementById("options-container");
         container.innerHTML = "";
 
@@ -376,7 +380,7 @@
             setTimeout(() => {
                 if (currentQuestionCount >= questionsToAnswer) {
                     currentLevel++;
-                    questionsToAnswer = currentLevel; // 레벨이 올라갈수록 클리어 요구 조건 개수 증가
+                    questionsToAnswer = currentLevel; 
                     currentQuestionCount = 0;
                     alert(`🎉 축하합니다! 다음 레벨 [Level ${currentLevel}]로 진급합니다.`);
                 }
@@ -385,7 +389,7 @@
         } else {
             document.getElementById("message").style.color = "#FF1493";
             document.getElementById("message").innerText = "앗! 틀렸어요. 처음부터 다시 도전해보세요! 😢";
-            currentQuestionCount = 0; // 오답 시 현재 레벨의 게이지 초기화 리셋
+            currentQuestionCount = 0; 
             setTimeout(generateWordQuestion, 1200);
         }
     }
