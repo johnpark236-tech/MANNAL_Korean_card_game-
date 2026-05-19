@@ -276,7 +276,7 @@
                 /* ⏰ 5분 도달 시 실시간 리포트 텍스트 생성 후 클립보드에 즉시 저장 */
                 copyReportToClipboard();
 
-                /* 🎯 [업데이트] 게임 시작 후 5분 마다는 광고가 순차적으로 순환 노출되도록 인덱스 변경 */
+                /* 🎯 게임 시작 후 5분 마다는 광고가 순차적으로 순환 노출되도록 인덱스 변경 */
                 currentAdIndex = (currentAdIndex + 1) % adInventory.length;
                 updateAdDisplay();
                 document.getElementById('ad-popup').style.display = 'flex'; 
@@ -299,12 +299,15 @@
         // 새로운 게임 시작 시 이전 데이터 내역 초기화 리셋
         quizHistory = [];
 
-        /* 🎯 [업데이트] 실행하자마자 과별 해당 타겟 광고가 먼저 나오도록 인덱스 강제 동기화 */
+        /* 🎯 [업데이트] 유저가 선택한 과(기본 노출 기준)에 맞추어 광고 인덱스를 강제 인덱싱 */
         if (sheetName === "all") {
             currentAdIndex = 0; 
         } else {
-            const chapterNum = parseInt(sheetName.replace(/[^0-9]/g, "").substring(0, 2));
-            /* 요청하신 테이블 기준에 맞춰 분기 구문 셋업 */
+            // 과 문자열 전체에서 첫 번째 숫자 덩어리를 추출하여 정수로 파싱 (예: "6과 2항" -> 6)
+            const match = sheetName.match(/\d+/);
+            const chapterNum = match ? parseInt(match[0], 10) : 0;
+            
+            /* 이미지 조건표에 맞추어 정확하게 매핑 분기 */
             if (chapterNum >= 1 && chapterNum <= 5) {
                 currentAdIndex = 0; // 1과 ~ 5과는 1번 광고 노출
             } else if (chapterNum >= 6 && chapterNum <= 14) {
