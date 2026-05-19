@@ -309,10 +309,10 @@
         let reportText = `=========================\n`;
         reportText += `🌸 MANNAL 한국어 공부 결과 리포트 🌸\n`;
         reportText += `=========================\n`;
-        reportText += `📅 학습 단원: ${selectedChapter}\n`;
-        reportText += `🌐 목적 언어: ${selectedLangLabel}\n`;
-        reportText += `📊 결과 통계: 총 ${totalQuestions}문제 중 ${correctCount}개 적중!\n\n`;
-        reportText += `📝 [문항별 상세 내용 리스트]\n`;
+        reportText += `📅 학습 과: ${selectedChapter}\n`;
+        reportText += `🌐 언어: ${selectedLangLabel}\n`;
+        reportText += `📊 결과 통계: 총 ${totalQuestions}문제 중 ${correctCount}개 정답!\n\n`;
+        reportText += `📝 [문제별 상세 리스트]\n`;
 
         quizHistory.forEach((record, index) => {
             const statusSymbol = record.isCorrect ? "⭕ 정답" : "❌ 오답";
