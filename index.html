@@ -454,7 +454,12 @@
         document.getElementById("level-display").innerText = `Level ${currentLevel}`;
         document.getElementById("progress-display").innerText = `현재 레벨 진행도: ${currentQuestionCount} / ${questionsToAnswer}`;
 
-        const correctTarget = wordData[Math.floor(Math.random() * wordData.length)];
+                // (준비 단계에서) let pool = [...wordData]; 로 전체 단어를 담아두고 시작
+        // 문제를 뽑을 때:
+        if (pool.length === 0) pool = [...wordData]; // 다 풀었으면 다시 채우기
+        const idx = Math.floor(Math.random() * pool.length);
+        const correctTarget = pool[idx];
+        pool.splice(idx, 1); // [핵심] 뽑은 단어를 즉시 주머니에서 제거 (정답/오답 무관)
         currentCorrectAnswer = correctTarget[currentLang];
         
         currentQuestionInfo.ko = correctTarget.ko;
