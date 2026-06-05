@@ -270,6 +270,13 @@
     }
 
     window.onpopstate = function(event) {
+        // 1. 광고가 떠 있는지를 먼저 확인해요! (광고가 보이면)
+        if (document.getElementById("ad-popup").style.display === 'flex') {
+            closeAdPopup(); // 광고만 닫고, 게임은 그대로 둡니다!
+            return; // 여기서 멈춤!
+        }
+    
+        // 2. 광고가 없다면, 기존처럼 게임 나갈지 물어봅니다.
         if (document.getElementById("app").style.display === "block") {
             goBackToSetup();
             initBackHistory();
