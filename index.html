@@ -1,588 +1,588 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🌸 MANNAL 한국어 단어 공부 🌸</title>
-    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <style>
-        :root {
-            --primary-color: #FF69B4;
-            --primary-light: #FFC0CB;
-            --primary-dark: #C71585;
-            --bg-default: #FFF0F5;
-        }
-        body { 
-            background-color: var(--bg-default); 
-            font-family: 'Jua', sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 20px 0; 
-            color: #333; 
-            box-sizing: border-box;
-            transition: background-color 0.3s ease;
-        }
-        .timer-bar { width: 90%; max-width: 400px; text-align: right; margin-bottom: 10px; font-size: 14px; color: var(--primary-dark); font-weight: bold; }
-        .card { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 25px rgba(255, 105, 180, 0.15); width: 90%; max-width: 400px; text-align: center; border: 4px solid var(--primary-light); margin-bottom: 20px; box-sizing: border-box; }
-        h1 { color: var(--primary-dark); font-size: 26px; margin-top: 0; margin-bottom: 15px; text-shadow: 1px 1px 2px rgba(255, 182, 193, 0.5); }
-        h3 { font-size: 16px; color: #555; margin-top: 15px; margin-bottom: 8px; text-align: left; }
-        
-        /* 🚨 광고 팝업 스타일 */
-        #ad-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 10000; flex-direction: column; justify-content: center; align-items: center; }
-        .popup-content { background: white; padding: 30px; border-radius: 25px; width: 85%; max-width: 320px; text-align: center; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🌸 MANNAL 한국어 단어 공부 🌸</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <style>
+        :root {
+            --primary-color: #FF69B4;
+            --primary-light: #FFC0CB;
+            --primary-dark: #C71585;
+            --bg-default: #FFF0F5;
+        }
+        body { 
+            background-color: var(--bg-default); 
+            font-family: 'Jua', sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px 0; 
+            color: #333; 
+            box-sizing: border-box;
+            transition: background-color 0.3s ease;
+        }
+        .timer-bar { width: 90%; max-width: 400px; text-align: right; margin-bottom: 10px; font-size: 14px; color: var(--primary-dark); font-weight: bold; }
+        .card { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 25px rgba(255, 105, 180, 0.15); width: 90%; max-width: 400px; text-align: center; border: 4px solid var(--primary-light); margin-bottom: 20px; box-sizing: border-box; }
+        h1 { color: var(--primary-dark); font-size: 26px; margin-top: 0; margin-bottom: 15px; text-shadow: 1px 1px 2px rgba(255, 182, 193, 0.5); }
+        h3 { font-size: 16px; color: #555; margin-top: 15px; margin-bottom: 8px; text-align: left; }
+        
+        /* 🚨 광고 팝업 스타일 */
+        #ad-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 10000; flex-direction: column; justify-content: center; align-items: center; }
+        .popup-content { background: white; padding: 30px; border-radius: 25px; width: 85%; max-width: 320px; text-align: center; }
 
-        /* 🟢🔴 정답, 오답, 레벨업 공용 팝업 모달 스타일 레이아웃 (image_15ae4a.png 양식 완전 이식) */
-        #result-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 20000; justify-content: center; align-items: center; }
-        .result-content { background: white; padding: 25px; border-radius: 25px; width: 75%; max-width: 260px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); animation: popScale 0.25s ease-out; }
-        @keyframes popScale { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        
-        .result-icon-box { font-size: 55px; line-height: 1; margin-bottom: 12px; }
-        .result-text { font-size: 20px; font-weight: bold; margin-bottom: 20px; line-height: 1.4; }
-        .result-confirm-btn { font-family: 'Jua', sans-serif; color: white; border: none; padding: 12px 0; border-radius: 15px; font-size: 18px; cursor: pointer; width: 100%; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15); }
-        
-        /* 정오답 및 레벨업 상태별 확장 스킨 클래스 명세 */
-        .result-content.correct-style { border: 4px solid #a3e9a4; background-color: #f1fbf1; }
-        .result-content.correct-style .result-text { color: #2e7d32; }
-        .result-content.correct-style .result-confirm-btn { background-color: #4caf50; }
-        .result-content.correct-style .result-confirm-btn:hover { background-color: #388e3c; }
-        
-        .result-content.incorrect-style { border: 4px solid #ffb3b3; background-color: #fff5f5; }
-        .result-content.incorrect-style .result-text { color: #c62828; }
-        .result-content.incorrect-style .result-confirm-btn { background-color: #e53935; }
-        .result-content.incorrect-style .result-confirm-btn:hover { background-color: #b71c1c; }
+        /* 🟢🔴 정답, 오답, 레벨업 공용 팝업 모달 스타일 레이아웃 (image_15ae4a.png 양식 완전 이식) */
+        #result-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 20000; justify-content: center; align-items: center; }
+        .result-content { background: white; padding: 25px; border-radius: 25px; width: 75%; max-width: 260px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); animation: popScale 0.25s ease-out; }
+        @keyframes popScale { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .result-icon-box { font-size: 55px; line-height: 1; margin-bottom: 12px; }
+        .result-text { font-size: 20px; font-weight: bold; margin-bottom: 20px; line-height: 1.4; }
+        .result-confirm-btn { font-family: 'Jua', sans-serif; color: white; border: none; padding: 12px 0; border-radius: 15px; font-size: 18px; cursor: pointer; width: 100%; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15); }
+        
+        /* 정오답 및 레벨업 상태별 확장 스킨 클래스 명세 */
+        .result-content.correct-style { border: 4px solid #a3e9a4; background-color: #f1fbf1; }
+        .result-content.correct-style .result-text { color: #2e7d32; }
+        .result-content.correct-style .result-confirm-btn { background-color: #4caf50; }
+        .result-content.correct-style .result-confirm-btn:hover { background-color: #388e3c; }
+        
+        .result-content.incorrect-style { border: 4px solid #ffb3b3; background-color: #fff5f5; }
+        .result-content.incorrect-style .result-text { color: #c62828; }
+        .result-content.incorrect-style .result-confirm-btn { background-color: #e53935; }
+        .result-content.incorrect-style .result-confirm-btn:hover { background-color: #b71c1c; }
 
-        /* ✨ [추가] 축하 상자 레벨업 비주얼 테마 클래스 명세 (image_216986.png 커스텀 모달 업그레이드) */
-        .result-content.level-up-style { border: 4px solid #ffd54f; background-color: #fffde7; }
-        .result-content.level-up-style .result-text { color: #f57f17; }
-        .result-content.level-up-style .result-confirm-btn { background-color: #ffb300; }
-        .result-content.level-up-style .result-confirm-btn:hover { background-color: #ff8f00; }
+        /* ✨ [추가] 축하 상자 레벨업 비주얼 테마 클래스 명세 (image_216986.png 커스텀 모달 업그레이드) */
+        .result-content.level-up-style { border: 4px solid #ffd54f; background-color: #fffde7; }
+        .result-content.level-up-style .result-text { color: #f57f17; }
+        .result-content.level-up-style .result-confirm-btn { background-color: #ffb300; }
+        .result-content.level-up-style .result-confirm-btn:hover { background-color: #ff8f00; }
 
-        /* 공통 UI 요소 */
-        .select-box { font-family: 'Jua', sans-serif; width: 100%; padding: 12px; font-size: 16px; border-radius: 15px; border: 2px solid var(--primary-color); background-color: white; color: #333; outline: none; margin-bottom: 10px; box-sizing: border-box; }
-        
-        /* ⏰ 시간 설정 숫자 입력 상자 전용 스타일 명세 */
-        .input-box { font-family: 'Jua', sans-serif; width: 100%; padding: 12px; font-size: 16px; border-radius: 15px; border: 2px solid var(--primary-color); background-color: white; color: #333; outline: none; margin-bottom: 10px; box-sizing: border-box; text-align: center; }
-        
-        .start-btn { font-family: 'Jua', sans-serif; background: var(--primary-color); color: white; border: none; padding: 14px; border-radius: 20px; font-size: 18px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(255, 105, 180, 0.3); margin-top: 10px; width: 100%; }
-        .start-btn:hover { background: var(--primary-dark); }
-        .start-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
-        
-        .level-info { background: #FFE4E1; color: var(--primary-dark); padding: 6px 15px; border-radius: 20px; display: inline-block; font-size: 15px; margin-bottom: 15px; }
-        .question-text { font-size: 24px; font-weight: bold; color: #222; margin-bottom: 20px; line-height: 1.4; }
-        .word-highlight { color: var(--primary-dark); font-size: 30px; display: block; margin-bottom: 5px; }
-        .options { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-        button.option-btn { font-family: 'Jua', sans-serif; background: white; color: #333; border: 2px solid var(--primary-light); padding: 14px; border-radius: 20px; font-size: 16px; cursor: pointer; transition: all 0.2s; text-align: left; padding-left: 20px; }
-        button.option-btn:hover { background: #FFF0F5; border-color: var(--primary-color); }
+        /* 공통 UI 요소 */
+        .select-box { font-family: 'Jua', sans-serif; width: 100%; padding: 12px; font-size: 16px; border-radius: 15px; border: 2px solid var(--primary-color); background-color: white; color: #333; outline: none; margin-bottom: 10px; box-sizing: border-box; }
+        
+        /* ⏰ 시간 설정 숫자 입력 상자 전용 스타일 명세 */
+        .input-box { font-family: 'Jua', sans-serif; width: 100%; padding: 12px; font-size: 16px; border-radius: 15px; border: 2px solid var(--primary-color); background-color: white; color: #333; outline: none; margin-bottom: 10px; box-sizing: border-box; text-align: center; }
+        
+        .start-btn { font-family: 'Jua', sans-serif; background: var(--primary-color); color: white; border: none; padding: 14px; border-radius: 20px; font-size: 18px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(255, 105, 180, 0.3); margin-top: 10px; width: 100%; }
+        .start-btn:hover { background: var(--primary-dark); }
+        .start-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+        
+        .level-info { background: #FFE4E1; color: var(--primary-dark); padding: 6px 15px; border-radius: 20px; display: inline-block; font-size: 15px; margin-bottom: 15px; }
+        .question-text { font-size: 24px; font-weight: bold; color: #222; margin-bottom: 20px; line-height: 1.4; }
+        .word-highlight { color: var(--primary-dark); font-size: 30px; display: block; margin-bottom: 5px; }
+        .options { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        button.option-btn { font-family: 'Jua', sans-serif; background: white; color: #333; border: 2px solid var(--primary-light); padding: 14px; border-radius: 20px; font-size: 16px; cursor: pointer; transition: all 0.2s; text-align: left; padding-left: 20px; }
+        button.option-btn:hover { background: #FFF0F5; border-color: var(--primary-color); }
 
-        /* 🎨 색상 커스텀 패널 관련 스타일 */
-        .color-picker-section { border: 2px dashed var(--primary-light); padding: 12px; border-radius: 20px; margin-top: 15px; background: #fafafa; }
-        .color-palette { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-        .color-chip { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; }
-        .color-chip:hover { transform: scale(1.15); }
-        .custom-color-row { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: #666; }
-        .picker-input { border: none; width: 40px; height: 30px; cursor: pointer; background: none; }
+        /* 🎨 색상 커스텀 패널 관련 스타일 */
+        .color-picker-section { border: 2px dashed var(--primary-light); padding: 12px; border-radius: 20px; margin-top: 15px; background: #fafafa; }
+        .color-palette { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .color-chip { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        .color-chip:hover { transform: scale(1.15); }
+        .custom-color-row { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: #666; }
+        .picker-input { border: none; width: 40px; height: 30px; cursor: pointer; background: none; }
 
-        /* ✨ 광고 디자인 */
-        .ad-container { width: 90%; max-width: 400px; text-align: center; margin-top: 10px; }
-        .algo-bubble { background: white; border: 3px solid var(--primary-color); padding: 18px; border-radius: 20px; font-size: 15px; color: #333; cursor: pointer; display: block; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(255, 105, 180, 0.1); line-height: 1.6; position: relative; text-align: center; }
-        .algo-bubble:hover { background: #FFF0F5; transform: translateY(-3px); box-shadow: 0 6px 15px rgba(255, 105, 180, 0.2); }
-        .cta-text { display: block; margin-top: 10px; font-size: 13px; color: var(--primary-dark); font-weight: bold; text-decoration: underline; }
-        .ad-notice { font-size: 10px; color: #999; margin-top: 8px; line-height: 1.4; }
-        .copyright { font-size: 11px; color: #bbb; margin-top: 25px; text-align: center; line-height: 1.5; padding-bottom: 20px; }
-        
-        .nav-footer { display: flex; gap: 10px; margin-top: 15px; width: 100%; }
-        .nav-btn { flex: 1; padding: 10px; border-radius: 15px; border: 1px solid #ccc; font-family: 'Jua', sans-serif; cursor: pointer; background: #fdfdfd; }
-    </style>
+        /* ✨ 광고 디자인 */
+        .ad-container { width: 90%; max-width: 400px; text-align: center; margin-top: 10px; }
+        .algo-bubble { background: white; border: 3px solid var(--primary-color); padding: 18px; border-radius: 20px; font-size: 15px; color: #333; cursor: pointer; display: block; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(255, 105, 180, 0.1); line-height: 1.6; position: relative; text-align: center; }
+        .algo-bubble:hover { background: #FFF0F5; transform: translateY(-3px); box-shadow: 0 6px 15px rgba(255, 105, 180, 0.2); }
+        .cta-text { display: block; margin-top: 10px; font-size: 13px; color: var(--primary-dark); font-weight: bold; text-decoration: underline; }
+        .ad-notice { font-size: 10px; color: #999; margin-top: 8px; line-height: 1.4; }
+        .copyright { font-size: 11px; color: #bbb; margin-top: 25px; text-align: center; line-height: 1.5; padding-bottom: 20px; }
+        
+        .nav-footer { display: flex; gap: 10px; margin-top: 15px; width: 100%; }
+        .nav-btn { flex: 1; padding: 10px; border-radius: 15px; border: 1px solid #ccc; font-family: 'Jua', sans-serif; cursor: pointer; background: #fdfdfd; }
+    </style>
 </head>
 <body>
 
 <div class="timer-bar" id="timer-display">다음 보너스 타임까지: 05:00</div>
 
 <div id="intro-screen" class="card">
-    <h1>🌸 MANNAL 단어 공부 🌸</h1>
-    <p style="margin-bottom: 20px; color:#666; font-size:15px;">과를 선택하고 퀴즈 도전!</p>
-    
-    <h3>1. 과</h3>
-    <select id="sheet-select" class="select-box">
-        <option value="all">전체 단어 (all)</option>
-        <option value="1과 1항">1과 1항</option><option value="1과 2항">1과 2항</option>
-        <option value="2과 1항">2과 1항</option><option value="2과 2항">2과 2항</option>
-        <option value="3과 1항">3과 1항</option><option value="3과 2항">3과 2항</option>
-        <option value="4과 1항">4과 1항</option><option value="4과 2항">4과 2항</option>
-        <option value="5과 1항">5과 1항</option><option value="5과 2항">5과 2항</option>
-        <option value="6과 1항">6과 1항</option><option value="6과 2항">6과 2항</option>
-        <option value="7과 1항">7과 1항</option><option value="7과 2항">7과 2항</option>
-        <option value="8과 1항">8과 1항</option><option value="8과 2항">8과 2항</option>
-        <option value="9과 1항">9과 1항</option><option value="9과 2항">9과 2항</option>
-        <option value="10과 1항">10과 1항</option><option value="10과 2항">10과 2항</option>
-        <option value="11과 1항">11과 1항</option><option value="11과 2항">11과 2항</option>
-        <option value="12과 1항">12과 1항</option><option value="12과 2항">12과 2항</option>
-        <option value="13과 1항">13과 1항</option><option value="13과 2항">13과 2항</option>
-        <option value="14과 1항">14과 1항</option><option value="14과 2항">14과 2항</option>
-        <option value="15과 1항">15과 1항</option><option value="15과 2항">15과 2항</option>
-        <option value="16과 1항">16과 1항</option><option value="16과 2항">16과 2항</option>
-    </select>
+    <h1>🌸 MANNAL 단어 공부 🌸</h1>
+    <p style="margin-bottom: 20px; color:#666; font-size:15px;">과를 선택하고 퀴즈 도전!</p>
+    
+    <h3>1. 과</h3>
+    <select id="sheet-select" class="select-box">
+        <option value="all">전체 단어 (all)</option>
+        <option value="1과 1항">1과 1항</option><option value="1과 2항">1과 2항</option>
+        <option value="2과 1항">2과 1항</option><option value="2과 2항">2과 2항</option>
+        <option value="3과 1항">3과 1항</option><option value="3과 2항">3과 2항</option>
+        <option value="4과 1항">4과 1항</option><option value="4과 2항">4과 2항</option>
+        <option value="5과 1항">5과 1항</option><option value="5과 2항">5과 2항</option>
+        <option value="6과 1항">6과 1항</option><option value="6과 2항">6과 2항</option>
+        <option value="7과 1항">7과 1항</option><option value="7과 2항">7과 2항</option>
+        <option value="8과 1항">8과 1항</option><option value="8과 2항">8과 2항</option>
+        <option value="9과 1항">9과 1항</option><option value="9과 2항">9과 2항</option>
+        <option value="10과 1항">10과 1항</option><option value="10과 2항">10과 2항</option>
+        <option value="11과 1항">11과 1항</option><option value="11과 2항">11과 2항</option>
+        <option value="12과 1항">12과 1항</option><option value="12과 2항">12과 2항</option>
+        <option value="13과 1항">13과 1항</option><option value="13과 2항">13과 2항</option>
+        <option value="14과 1항">14과 1항</option><option value="14과 2항">14과 2항</option>
+        <option value="15과 1항">15과 1항</option><option value="15과 2항">15과 2항</option>
+        <option value="16과 1항">16과 1항</option><option value="16과 2항">16과 2항</option>
+    </select>
 
-    <h3>2. 언어.</h3>
-    <select id="lang-select" class="select-box">
-        <option value="vi">베트남어 (Tiếng Việt)</option>
-        <option value="uz">우즈베크어 (O'zbekcha)</option>
-        <option value="mn">몽골어 (Монгол хэл)</option>
-        <option value="en">영어 (English)</option>
-    </select>
+    <h3>2. 언어.</h3>
+    <select id="lang-select" class="select-box">
+        <option value="vi">베트남어 (Tiếng Việt)</option>
+        <option value="uz">우즈베크어 (O'zbekcha)</option>
+        <option value="mn">몽골어 (Монгол хэл)</option>
+        <option value="en">영어 (English)</option>
+    </select>
 
-    <h3>3. 테스트 시간 설정 (분)</h3>
-    <input type="number" id="user-timer-input" class="input-box" min="1" max="60" value="5" placeholder="시간 입력">
+    <h3>3. 테스트 시간 설정 (분)</h3>
+    <input type="number" id="user-timer-input" class="input-box" min="1" max="60" value="5" placeholder="시간 입력">
 
-    <div class="color-picker-section">
-        <div style="font-size:14px; color:#444; margin-bottom:8px; font-weight:bold; text-align:left;">🎨 색깔</div>
-        <div class="color-palette">
-            <div class="color-chip" style="background-color: #FFF0F5;" onclick="changeBg('#FFF0F5')"></div>
-            <div class="color-chip" style="background-color: #E0F8F5;" onclick="changeBg('#E0F8F5')"></div>
-            <div class="color-chip" style="background-color: #E0F0F8;" onclick="changeBg('#E0F0F8')"></div>
-            <div class="color-chip" style="background-color: #FFFDE0;" onclick="changeBg('#FFFDE0')"></div>
-            <div class="color-chip" style="background-color: #F5F6F8;" onclick="changeBg('#F5F6F8')"></div>
-        </div>
-        <div class="custom-color-row">
-            <span>사용자 지정 색상 고르기:</span>
-            <input type="color" id="bg-color-picker" class="picker-input" value="#FFF0F5" oninput="changeBg(this.value)">
-        </div>
-    </div>
+    <div class="color-picker-section">
+        <div style="font-size:14px; color:#444; margin-bottom:8px; font-weight:bold; text-align:left;">🎨 색깔</div>
+        <div class="color-palette">
+            <div class="color-chip" style="background-color: #FFF0F5;" onclick="changeBg('#FFF0F5')"></div>
+            <div class="color-chip" style="background-color: #E0F8F5;" onclick="changeBg('#E0F8F5')"></div>
+            <div class="color-chip" style="background-color: #E0F0F8;" onclick="changeBg('#E0F0F8')"></div>
+            <div class="color-chip" style="background-color: #FFFDE0;" onclick="changeBg('#FFFDE0')"></div>
+            <div class="color-chip" style="background-color: #F5F6F8;" onclick="changeBg('#F5F6F8')"></div>
+        </div>
+        <div class="custom-color-row">
+            <span>사용자 지정 색상 고르기:</span>
+            <input type="color" id="bg-color-picker" class="picker-input" value="#FFF0F5" oninput="changeBg(this.value)">
+        </div>
+    </div>
 
-    <button class="start-btn" id="start-game-btn" onclick="prepareGame()" disabled>데이터 로딩 중... 잠시만 기다려주세요 ⏳</button>
+    <button class="start-btn" id="start-game-btn" onclick="prepareGame()" disabled>데이터 로딩 중... 잠시만 기다려주세요 ⏳</button>
 </div>
 
 <div id="ad-popup">
-    <div class="popup-content">
-        <h2 style="color: var(--primary-dark); margin-top: 0;">💡 잠시 쉬어가는 시간!</h2>
-        <p style="font-size: 12px; color: #ff1493; font-weight: bold; margin-bottom: 10px;">📋 현재까지의 테스트 결과가 클립보드에 복사되었습니다!</p>
-        <a id="popup-link" href="" target="_blank" onclick="closeAdPopup()" style="text-decoration: none;">
-            <div class="algo-bubble">
-                <span id="popup-msg"></span>
-                <span class="cta-text">내용 자세히 알아보기 ▶</span>
-            </div>
-        </a>
-        <p style="font-size: 11px; color: #888; margin-top: 20px;">(위 박스를 클릭하시면 게임이 재개됩니다)</p>
-    </div>
+    <div class="popup-content">
+        <h2 style="color: var(--primary-dark); margin-top: 0;">💡 잠시 쉬어가는 시간!</h2>
+        <p style="font-size: 12px; color: #ff1493; font-weight: bold; margin-bottom: 10px;">📋 현재까지의 테스트 결과가 클립보드에 복사되었습니다!</p>
+        <a id="popup-link" href="" target="_blank" onclick="closeAdPopup()" style="text-decoration: none;">
+            <div class="algo-bubble">
+                <span id="popup-msg"></span>
+                <span class="cta-text">내용 자세히 알아보기 ▶</span>
+            </div>
+        </a>
+        <p style="font-size: 11px; color: #888; margin-top: 20px;">(위 박스를 클릭하시면 게임이 재개됩니다)</p>
+    </div>
 </div>
 
 <div id="result-popup">
-    <div id="result-card-inner" class="result-content">
-        <div id="result-icon" class="result-icon-box">✔️</div>
-        <div id="result-message" class="result-text">정답입니다!</div>
-        <button id="result-action-btn" class="result-confirm-btn" onclick="handleResultModalConfirm()">확인</button>
-    </div>
+    <div id="result-card-inner" class="result-content">
+        <div id="result-icon" class="result-icon-box">✔️</div>
+        <div id="result-message" class="result-text">정답입니다!</div>
+        <button id="result-action-btn" class="result-confirm-btn" onclick="handleResultModalConfirm()">확인</button>
+    </div>
 </div>
 
 <div id="app" class="card" style="display:none;">
-    <div class="level-info" id="level-display">Level 1</div>
-    <div id="progress-display" style="font-size: 14px; color: var(--primary-dark); margin-bottom: 12px;">진행도: 0 / 1</div>
-    
-    <div class="question-text">
-        <span class="word-highlight" id="word-display">단어</span>
-        의 맞는 것을 고르세요~
-    </div>
-    
-    <div class="options" id="options-container"></div>
-    <div id="message" style="margin-top:15px; color:var(--primary-dark); font-weight:bold; height:20px;"></div>
-    
-    <div class="nav-footer">
-        <button class="nav-btn" onclick="goBackToSetup()">🔄 설정 화면으로</button>
-    </div>
+    <div class="level-info" id="level-display">Level 1</div>
+    <div id="progress-display" style="font-size: 14px; color: var(--primary-dark); margin-bottom: 12px;">진행도: 0 / 1</div>
+    
+    <div class="question-text">
+        <span class="word-highlight" id="word-display">단어</span>
+        의 맞는 것을 고르세요~
+    </div>
+    
+    <div class="options" id="options-container"></div>
+    <div id="message" style="margin-top:15px; color:var(--primary-dark); font-weight:bold; height:20px;"></div>
+    
+    <div class="nav-footer">
+        <button class="nav-btn" onclick="goBackToSetup()">🔄 설정 화면으로</button>
+    </div>
 </div>
 
 <div class="ad-container">
-    <p style="font-size: 11px; color: #666; margin-bottom: 12px;">"광고 클릭 🙏 도와주세요"</p>
-    <a id="main-link" href="" target="_blank" style="text-decoration: none;">
-        <div class="algo-bubble">
-            <span id="main-bubble"></span>
-            <span class="cta-text">내용 자세히 알아보기 ▶</span>
-        </div>
-    </a>
-    <p class="ad-notice">이 포스팅은 쿠팡 파트너스 활동의 일환으로 수수료를 제공받습니다.</p>
+    <p style="font-size: 11px; color: #666; margin-bottom: 12px;">"광고 클릭 🙏 도와주세요"</p>
+    <a id="main-link" href="" target="_blank" style="text-decoration: none;">
+        <div class="algo-bubble">
+            <span id="main-bubble"></span>
+            <span class="cta-text">내용 자세히 알아보기 ▶</span>
+        </div>
+    </a>
+    <p class="ad-notice">이 포스팅은 쿠팡 파트너스 활동의 일환으로 수수료를 제공받습니다.</p>
 </div>
 
 <div class="copyright">
-    Copyright 2026. <b>johnpark236-tech</b> All rights reserved.<br>
-    본 소프트웨어의 무단 복제, 수정 및 재배포를 금하며, 발견 시 법적 책임을물을 수 있습니다.
+    Copyright 2026. <b>johnpark236-tech</b> All rights reserved.<br>
+    본 소프트웨어의 무단 복제, 수정 및 재배포를 금하며, 발견 시 법적 책임을물을 수 있습니다.
 </div>
 
 <script>
-    /* 🛡️ 도메인 검증 및 출처 제어 고정 */
-    if (!window.location.hostname.includes("johnpark236-tech.github.io") && window.location.hostname !== "localhost") {
-        alert("이 프로그램은 무단 복제되어 사용할 수 없습니다.\n출처: johnpark236-tech");
-        window.location.href = "https://johnpark236-tech.github.io/MANNAL-4_ad/";
-    }
+    /* 🛡️ 도메인 검증 및 출처 제어 고정 */
+    if (!window.location.hostname.includes("johnpark236-tech.github.io") && window.location.hostname !== "localhost") {
+        alert("이 프로그램은 무단 복제되어 사용할 수 없습니다.\n출처: johnpark236-tech");
+        window.location.href = "https://johnpark236-tech.github.io/MANNAL-4_ad/";
+    }
 
-    /* 📊 구글 스프레드시트 데이터베이스 링크 연동 구조 */
-    const GOOGLE_DRIVE_LINK = "https://docs.google.com/spreadsheets/d/1bIPF2bnDDh2nY9VFAkzwSb-kinS1zNsa/edit?usp=sharing&ouid=101152576649647838712&rtpof=true&sd=true";
-    
-    function getDriveId(url) {
-        let match = url.match(/\/d\/(.+?)\//);
-        if (match) return match[1];
-        match = url.match(/[?&]id=(.+?)(&|$)/);
-        if (match) return match[1];
-        return "";
-    }
-    const FILE_ID = getDriveId(GOOGLE_DRIVE_LINK);
+    /* 📊 구글 스프레드시트 데이터베이스 링크 연동 구조 */
+    const GOOGLE_DRIVE_LINK = "https://docs.google.com/spreadsheets/d/1bIPF2bnDDh2nY9VFAkzwSb-kinS1zNsa/edit?usp=sharing&ouid=101152576649647838712&rtpof=true&sd=true";
+    
+    function getDriveId(url) {
+        let match = url.match(/\/d\/(.+?)\//);
+        if (match) return match[1];
+        match = url.match(/[?&]id=(.+?)(&|$)/);
+        if (match) return match[1];
+        return "";
+    }
+    const FILE_ID = getDriveId(GOOGLE_DRIVE_LINK);
 
-    /* 🛒 교재 광고 데이터 3종 인벤토리 */
-    const adInventory = [
-        { link: "https://link.coupang.com/a/dR1u21gzSu", msg: "한국어 기초 다지기 강력 추천! 📚<br><b>[1급_1과~8과] 서울대 한국어1A Student Book + Workbook SET</b> 교재 정보를 확인해보세요!" },
-        { link: "https://link.coupang.com/a/dR1A75FhN6", msg: "실력 향상을 위한 다음 필수 코스! ✨<br><b>[1급_9과~16과] 서울대 한국어 플러스 1B Student Book + Workbook SET</b> 혜택을 확인해보세요!" },
-        { link: "https://link.coupang.com/a/dR2p3ImcMK", msg: "중급 도약을 위한 최고의 선택! 🚀<br><b>[2급_1과~8과] 서울대 한국어 플러스 2A Student Book + Workbook SET</b> 정보를 확인해보세요!" }
-    ];
+    /* 🛒 교재 광고 데이터 3종 인벤토리 */
+    const adInventory = [
+        { link: "https://link.coupang.com/a/dR1u21gzSu", msg: "한국어 기초 다지기 강력 추천! 📚<br><b>[1급_1과~8과] 서울대 한국어1A Student Book + Workbook SET</b> 교재 정보를 확인해보세요!" },
+        { link: "https://link.coupang.com/a/dR1A75FhN6", msg: "실력 향상을 위한 다음 필수 코스! ✨<br><b>[1급_9과~16과] 서울대 한국어 플러스 1B Student Book + Workbook SET</b> 혜택을 확인해보세요!" },
+        { link: "https://link.coupang.com/a/dR2p3ImcMK", msg: "중급 도약을 위한 최고의 선택! 🚀<br><b>[2급_1과~8과] 서울대 한국어 플러스 2A Student Book + Workbook SET</b> 정보를 확인해보세요!" }
+    ];
 
-    let currentAdIndex = 0; 
-    let maxSeconds = 300; 
-    let secondsLeft = 300; 
-    let timer;
-    let wordData = [];         
-    let currentLang = 'vi';    
-    let currentLevel = 1; 
-    let questionsToAnswer = 1; 
-    let currentQuestionCount = 0; 
-    let currentCorrectAnswer = "";
-    
-    /* 📝 카카오톡 전송용 테스트 결과 리포트 저장용 메모리 풀 */
-    let quizHistory = []; 
-    let currentQuestionInfo = { ko: "", target: "" };
-    
-    /* 🟢🔴 모달 제어용 내부 상태 값 스위치 */
-    let isModalCorrectState = false;
-    let isLevelUpPending = false;
+    let currentAdIndex = 0; 
+    let maxSeconds = 300; 
+    let secondsLeft = 300; 
+    let timer;
+    let wordData = [];         
+    let currentLang = 'vi';    
+    let currentLevel = 1; 
+    let questionsToAnswer = 1; 
+    let currentQuestionCount = 0; 
+    let currentCorrectAnswer = "";
+    
+    /* 📝 카카오톡 전송용 테스트 결과 리포트 저장용 메모리 풀 */
+    let quizHistory = []; 
+    let currentQuestionInfo = { ko: "", target: "" };
+    
+    /* 🟢🔴 모달 제어용 내부 상태 값 스위치 */
+    let isModalCorrectState = false;
+    let isLevelUpPending = false;
 
-    // 구글 차트 라이브러리 및 시트 콜백 정의
-    google.charts.load('current', {packages: ['corechart']});
-    google.charts.setOnLoadCallback(() => {
-        const startBtn = document.getElementById('start-game-btn');
-        startBtn.disabled = false;
-        startBtn.innerText = "시작! 🚀";
-    });
+    // 구글 차트 라이브러리 및 시트 콜백 정의
+    google.charts.load('current', {packages: ['corechart']});
+    google.charts.setOnLoadCallback(() => {
+        const startBtn = document.getElementById('start-game-btn');
+        startBtn.disabled = false;
+        startBtn.innerText = "시작! 🚀";
+    });
 
-    /* 📱 모바일 뒤로가기 버튼 제어 및 다중 연타 방지 트리거 바인딩 */
-    function initBackHistory() {
-        window.history.pushState({ page: "setup" }, "Setup", "");
-    }
+    /* 📱 모바일 뒤로가기 버튼 제어 및 다중 연타 방지 트리거 바인딩 */
+    function initBackHistory() {
+        window.history.pushState({ page: "setup" }, "Setup", "");
+    }
 
-    window.onpopstate = function(event) {
-        if (document.getElementById("app").style.display === "block") {
-            goBackToSetup();
-            initBackHistory();
-        } else {
-            if (confirm("한 번 더 누르면 창이 닫힙니다. 프로그램을 종료하시겠습니까?")) {
-                window.location.href = "about:blank"; 
-            } else {
-                initBackHistory(); 
-            }
-        }
-    };
+    window.onpopstate = function(event) {
+        if (document.getElementById("app").style.display === "block") {
+            goBackToSetup();
+            initBackHistory();
+        } else {
+            if (confirm("한 번 더 누르면 창이 닫힙니다. 프로그램을 종료하시겠습니까?")) {
+                window.location.href = "about:blank"; 
+            } else {
+                initBackHistory(); 
+            }
+        }
+    };
 
-    /* 🎨 실시간 배경색 핸들러 */
-    function changeBg(color) {
-        document.body.style.backgroundColor = color;
-        document.getElementById('bg-color-picker').value = color;
-    }
+    /* 🎨 실시간 배경색 핸들러 */
+    function changeBg(color) {
+        document.body.style.backgroundColor = color;
+        document.getElementById('bg-color-picker').value = color;
+    }
 
-    /* 🛒 광고 출력 컨트롤 유닛 */
-    function updateAdDisplay() {
-        const ad = adInventory[currentAdIndex];
-        document.getElementById('main-bubble').innerHTML = ad.msg;
-        document.getElementById('main-link').href = ad.link;
-        document.getElementById('popup-msg').innerHTML = ad.msg;
-        document.getElementById('popup-link').href = ad.link;
-    }
+    /* 🛒 광고 출력 컨트롤 유닛 */
+    function updateAdDisplay() {
+        const ad = adInventory[currentAdIndex];
+        document.getElementById('main-bubble').innerHTML = ad.msg;
+        document.getElementById('main-link').href = ad.link;
+        document.getElementById('popup-msg').innerHTML = ad.msg;
+        document.getElementById('popup-link').href = ad.link;
+    }
 
-    /* 📋 실시간 테스트 통계 산출 및 클립보드 스크립트 복사 엔진 */
-    function copyReportToClipboard() {
-        if (quizHistory.length === 0) return;
+    /* 📋 실시간 테스트 통계 산출 및 클립보드 스크립트 복사 엔진 */
+    function copyReportToClipboard() {
+        if (quizHistory.length === 0) return;
 
-        const totalQuestions = quizHistory.length;
-        const correctCount = quizHistory.filter(item => item.isCorrect).length;
-        const selectedChapter = document.getElementById('sheet-select').value;
-        const selectedLangLabel = document.getElementById('lang-select').options[document.getElementById('lang-select').selectedIndex].text;
+        const totalQuestions = quizHistory.length;
+        const correctCount = quizHistory.filter(item => item.isCorrect).length;
+        const selectedChapter = document.getElementById('sheet-select').value;
+        const selectedLangLabel = document.getElementById('lang-select').options[document.getElementById('lang-select').selectedIndex].text;
 
-        let reportText = `=========================\n`;
-        reportText += `🌸 MANNAL 한국어 공부 결과 리포트 🌸\n`;
-        reportText += `=========================\n`;
-        reportText += `📅 학습 과: ${selectedChapter}\n`;
-        reportText += `🌐 언어: ${selectedLangLabel}\n`;
-        reportText += `📊 결과 통계: 총 ${totalQuestions}문제 중 ${correctCount}개 정답!\n\n`;
-        reportText += `📝 [문제별 상세 리스트]\n`;
+        let reportText = `=========================\n`;
+        reportText += `🌸 MANNAL 한국어 공부 결과 리포트 🌸\n`;
+        reportText += `=========================\n`;
+        reportText += `📅 학습 과: ${selectedChapter}\n`;
+        reportText += `🌐 언어: ${selectedLangLabel}\n`;
+        reportText += `📊 결과 통계: 총 ${totalQuestions}문제 중 ${correctCount}개 정답!\n\n`;
+        reportText += `📝 [문제별 상세 리스트]\n`;
 
-        quizHistory.forEach((record, index) => {
-            const statusSymbol = record.isCorrect ? "⭕ 정답" : "❌ 오답";
-            reportText += `${index + 1}. 한국어 [${record.koWord}] -> 선택: [${record.userChoice}] (정답: [${record.correctValue}]) [${statusSymbol}]\n`;
-        });
+        quizHistory.forEach((record, index) => {
+            const statusSymbol = record.isCorrect ? "⭕ 정답" : "❌ 오답";
+            reportText += `${index + 1}. 한국어 [${record.koWord}] -> 선택: [${record.userChoice}] (정답: [${record.correctValue}]) [${statusSymbol}]\n`;
+        });
 
-        reportText += `\n카카오톡 대화방에 붙여넣어 공유해보세요! 💕`;
+        reportText += `\n카카오톡 대화방에 붙여넣어 공유해보세요! 💕`;
 
-        navigator.clipboard.writeText(reportText).then(() => {
-            console.log("테스트 레포트가 성공적으로 클립보드에 백업되었습니다.");
-        }).catch(err => {
-            console.error("클립보드 저장 실패: ", err);
-        });
-    }
+        navigator.clipboard.writeText(reportText).then(() => {
+            console.log("테스트 레포트가 성공적으로 클립보드에 백업되었습니다.");
+        }).catch(err => {
+            console.error("클립보드 저장 실패: ", err);
+        });
+    }
 
-    function displayTimerText() {
-        const m = Math.floor(secondsLeft / 60); 
-        const s = secondsLeft % 60;
-        document.getElementById('timer-display').innerText = `다음 보너스 타임까지: ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    }
+    function displayTimerText() {
+        const m = Math.floor(secondsLeft / 60); 
+        const s = secondsLeft % 60;
+        document.getElementById('timer-display').innerText = `다음 보너스 타임까지: ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
 
-    function startAdTimer() {
-        clearInterval(timer);
-        timer = setInterval(() => {
-            secondsLeft--;
-            displayTimerText();
-            if (secondsLeft <= 0) { 
-                copyReportToClipboard();
-                currentAdIndex = (currentAdIndex + 1) % adInventory.length;
-                updateAdDisplay();
-                document.getElementById('ad-popup').style.display = 'flex'; 
-                clearInterval(timer); 
-            }
-        }, 1000);
-    }
+    function startAdTimer() {
+        clearInterval(timer);
+        timer = setInterval(() => {
+            secondsLeft--;
+            displayTimerText();
+            if (secondsLeft <= 0) { 
+                copyReportToClipboard();
+                currentAdIndex = (currentAdIndex + 1) % adInventory.length;
+                updateAdDisplay();
+                document.getElementById('ad-popup').style.display = 'flex'; 
+                clearInterval(timer); 
+            }
+        }, 1000);
+    }
 
-    function closeAdPopup() {
-        document.getElementById('ad-popup').style.display = 'none';
-        secondsLeft = maxSeconds; 
-        displayTimerText();
-        startAdTimer();
-    }
+    function closeAdPopup() {
+        document.getElementById('ad-popup').style.display = 'none';
+        secondsLeft = maxSeconds; 
+        displayTimerText();
+        startAdTimer();
+    }
 
-    /* 🚀 게임 초기 설정 및 과별 맞춤형 광고 강제 트리거 지정 */
-    function prepareGame() {
-        const sheetName = document.getElementById('sheet-select').value;
-        currentLang = document.getElementById('lang-select').value;
-        
-        let userMinutes = parseInt(document.getElementById('user-timer-input').value, 10);
-        if (isNaN(userMinutes) || userMinutes < 1) {
-            userMinutes = 5; 
-            document.getElementById('user-timer-input').value = 5;
-        }
-        maxSeconds = userMinutes * 60; 
-        secondsLeft = maxSeconds;      
-        displayTimerText();            
+    /* 🚀 게임 초기 설정 및 과별 맞춤형 광고 강제 트리거 지정 */
+    function prepareGame() {
+        const sheetName = document.getElementById('sheet-select').value;
+        currentLang = document.getElementById('lang-select').value;
+        
+        let userMinutes = parseInt(document.getElementById('user-timer-input').value, 10);
+        if (isNaN(userMinutes) || userMinutes < 1) {
+            userMinutes = 5; 
+            document.getElementById('user-timer-input').value = 5;
+        }
+        maxSeconds = userMinutes * 60; 
+        secondsLeft = maxSeconds;      
+        displayTimerText();            
 
-        quizHistory = [];
+        quizHistory = [];
 
-        if (sheetName === "all") {
-            currentAdIndex = 0; 
-        } else {
-            const match = sheetName.match(/\d+/);
-            const chapterNum = match ? parseInt(match[0], 10) : 0;
-            
-            if (chapterNum >= 1 && chapterNum <= 5) {
-                currentAdIndex = 0; 
-            } else if (chapterNum >= 6 && chapterNum <= 14) {
-                currentAdIndex = 1; 
-            } else if (chapterNum >= 15 && chapterNum <= 16) {
-                currentAdIndex = 2; 
-            }
-        }
-        
-        updateAdDisplay();
+        if (sheetName === "all") {
+            currentAdIndex = 0; 
+        } else {
+            const match = sheetName.match(/\d+/);
+            const chapterNum = match ? parseInt(match[0], 10) : 0;
+            
+            if (chapterNum >= 1 && chapterNum <= 5) {
+                currentAdIndex = 0; 
+            } else if (chapterNum >= 6 && chapterNum <= 14) {
+                currentAdIndex = 1; 
+            } else if (chapterNum >= 15 && chapterNum <= 16) {
+                currentAdIndex = 2; 
+            }
+        }
+        
+        updateAdDisplay();
 
-        if (!FILE_ID) {
-            alert("구글 시트 주소가 올바르지 않습니다. 코드를 다시 확인해주세요.");
-            return;
-        }
+        if (!FILE_ID) {
+            alert("구글 시트 주소가 올바르지 않습니다. 코드를 다시 확인해주세요.");
+            return;
+        }
 
-        const queryUrl = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&headers=1&tq=${encodeURIComponent("select A,B,C,D,E,F")}&nocache=${new Date().getTime()}`;
-        const query = new google.visualization.Query(queryUrl);
-        query.send(handleSheetResponse);
-    }
+        const queryUrl = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&headers=1&tq=${encodeURIComponent("select A,B,C,D,E,F")}&nocache=${new Date().getTime()}`;
+        const query = new google.visualization.Query(queryUrl);
+        query.send(handleSheetResponse);
+    }
 
-    function handleSheetResponse(response) {
-        if (response.isError()) {
-            alert("스프레드시트 데이터 로딩 실패! 공유 권한 또는 단원 이름을 확인하세요.");
-            return;
-        }
+    function handleSheetResponse(response) {
+        if (response.isError()) {
+            alert("스프레드시트 데이터 로딩 실패! 공유 권한 또는 단원 이름을 확인하세요.");
+            return;
+        }
 
-        const dt = response.getDataTable();
-        const rows = dt.getNumberOfRows();
-        const cols = dt.getNumberOfColumns();
-        wordData = [];
+        const dt = response.getDataTable();
+        const rows = dt.getNumberOfRows();
+        const cols = dt.getNumberOfColumns();
+        wordData = [];
 
-        for (let i = 0; i < rows; i++) {
-            const koWord = dt.getValue(i, 0); 
-            if (!koWord) continue;
+        for (let i = 0; i < rows; i++) {
+            const koWord = dt.getValue(i, 0); 
+            if (!koWord) continue;
 
-            let emojiValue = '💡';
-            if (cols > 5 && dt.getValue(i, 5) != null) {
-                let fetchedEmoji = dt.getValue(i, 5).toString().trim();
-                if (fetchedEmoji !== '') emojiValue = fetchedEmoji;
-            }
+            let emojiValue = '💡';
+            if (cols > 5 && dt.getValue(i, 5) != null) {
+                let fetchedEmoji = dt.getValue(i, 5).toString().trim();
+                if (fetchedEmoji !== '') emojiValue = fetchedEmoji;
+            }
 
-            wordData.push({
-                ko: koWord.toString().trim(),
-                vi: (cols > 1 && dt.getValue(i, 1)) ? dt.getValue(i, 1).toString().trim() : '', 
-                uz: (cols > 2 && dt.getValue(i, 2)) ? dt.getValue(i, 2).toString().trim() : '', 
-                mn: (cols > 3 && dt.getValue(i, 3)) ? dt.getValue(i, 3).toString().trim() : '', 
-                en: (cols > 4 && dt.getValue(i, 4)) ? dt.getValue(i, 4).toString().trim() : '', 
-                emoji: emojiValue
-            });
-        }
+            wordData.push({
+                ko: koWord.toString().trim(),
+                vi: (cols > 1 && dt.getValue(i, 1)) ? dt.getValue(i, 1).toString().trim() : '', 
+                uz: (cols > 2 && dt.getValue(i, 2)) ? dt.getValue(i, 2).toString().trim() : '', 
+                mn: (cols > 3 && dt.getValue(i, 3)) ? dt.getValue(i, 3).toString().trim() : '', 
+                en: (cols > 4 && dt.getValue(i, 4)) ? dt.getValue(i, 4).toString().trim() : '', 
+                emoji: emojiValue
+            });
+        }
 
-        wordData = wordData.filter(item => item[currentLang] !== '');
+        wordData = wordData.filter(item => item[currentLang] !== '');
 
-        if (wordData.length < 4) {
-            alert("선택한 단원에 퀴즈를 풀 수 있는 데이터가 부족합니다. (최소 4개 이상의 단어 필요)");
-            return;
-        }
+        if (wordData.length < 4) {
+            alert("선택한 단원에 퀴즈를 풀 수 있는 데이터가 부족합니다. (최소 4개 이상의 단어 필요)");
+            return;
+        }
 
-        document.getElementById("intro-screen").style.display = "none";
-        document.getElementById("app").style.display = "block";
-        
-        currentLevel = 1;
-        questionsToAnswer = 1;
-        currentQuestionCount = 0;
-        
-        generateWordQuestion();
-        startAdTimer();
-    }
+        document.getElementById("intro-screen").style.display = "none";
+        document.getElementById("app").style.display = "block";
+        
+        currentLevel = 1;
+        questionsToAnswer = 1;
+        currentQuestionCount = 0;
+        
+        generateWordQuestion();
+        startAdTimer();
+    }
 
-    /* 🎯 4지선다형 객관식 퀴즈 문항 자동 동적 빌드 함수 */
-    function generateWordQuestion() {
-        document.getElementById("message").innerText = "";
-        document.getElementById("level-display").innerText = `Level ${currentLevel}`;
-        document.getElementById("progress-display").innerText = `현재 레벨 진행도: ${currentQuestionCount} / ${questionsToAnswer}`;
+    /* 🎯 4지선다형 객관식 퀴즈 문항 자동 동적 빌드 함수 */
+    function generateWordQuestion() {
+        document.getElementById("message").innerText = "";
+        document.getElementById("level-display").innerText = `Level ${currentLevel}`;
+        document.getElementById("progress-display").innerText = `현재 레벨 진행도: ${currentQuestionCount} / ${questionsToAnswer}`;
 
-        const correctTarget = wordData[Math.floor(Math.random() * wordData.length)];
-        currentCorrectAnswer = correctTarget[currentLang];
-        
-        currentQuestionInfo.ko = correctTarget.ko;
-        currentQuestionInfo.target = currentCorrectAnswer;
+        const correctTarget = wordData[Math.floor(Math.random() * wordData.length)];
+        currentCorrectAnswer = correctTarget[currentLang];
+        
+        currentQuestionInfo.ko = correctTarget.ko;
+        currentQuestionInfo.target = currentCorrectAnswer;
 
-        document.getElementById("word-display").innerHTML = `${correctTarget.emoji} ${correctTarget.ko}`;
+        document.getElementById("word-display").innerHTML = `${correctTarget.emoji} ${correctTarget.ko}`;
 
-        let wrongPool = wordData
-            .filter(item => item[currentLang] !== currentCorrectAnswer)
-            .map(item => item[currentLang]);
-        
-        wrongPool = [...new Set(wrongPool)].sort(() => 0.5 - Math.random());
-        let selectedWrongs = wrongPool.slice(0, 3);
+        let wrongPool = wordData
+            .filter(item => item[currentLang] !== currentCorrectAnswer)
+            .map(item => item[currentLang]);
+        
+        wrongPool = [...new Set(wrongPool)].sort(() => 0.5 - Math.random());
+        let selectedWrongs = wrongPool.slice(0, 3);
 
-        while(selectedWrongs.length < 3) {
-            selectedWrongs.push("정답 외 옵션 " + (selectedWrongs.length + 1));
-        }
+        while(selectedWrongs.length < 3) {
+            selectedWrongs.push("정답 외 옵션 " + (selectedWrongs.length + 1));
+        }
 
-        let finalFourOptions = [currentCorrectAnswer, ...selectedWrongs].sort(() => 0.5 - Math.random());
+        let finalFourOptions = [currentCorrectAnswer, ...selectedWrongs].sort(() => 0.5 - Math.random());
 
-        const container = document.getElementById("options-container");
-        container.innerHTML = "";
+        const container = document.getElementById("options-container");
+        container.innerHTML = "";
 
-        finalFourOptions.forEach((optionText, idx) => {
-            const btn = document.createElement("button");
-            btn.className = "option-btn";
-            btn.innerText = `${idx + 1}. ${optionText}`;
-            btn.onclick = () => verifyUserSelection(optionText);
-            container.appendChild(btn);
-        });
-    }
+        finalFourOptions.forEach((optionText, idx) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = `${idx + 1}. ${optionText}`;
+            btn.onclick = () => verifyUserSelection(optionText);
+            container.appendChild(btn);
+        });
+    }
 
-    /* 🔍 유저 정답 확인 연산 로직 함수 */
-    function verifyUserSelection(selectedText) {
-        const isUserCorrect = (selectedText === currentCorrectAnswer);
-        
-        quizHistory.push({
-            koWord: currentQuestionInfo.ko,
-            userChoice: selectedText,
-            correctValue: currentQuestionInfo.target,
-            isCorrect: isUserCorrect
-        });
+    /* 🔍 유저 정답 확인 연산 로직 함수 */
+    function verifyUserSelection(selectedText) {
+        const isUserCorrect = (selectedText === currentCorrectAnswer);
+        
+        quizHistory.push({
+            koWord: currentQuestionInfo.ko,
+            userChoice: selectedText,
+            correctValue: currentQuestionInfo.target,
+            isCorrect: isUserCorrect
+        });
 
-        isModalCorrectState = isUserCorrect;
-        isLevelUpPending = false; // 플래그 초기화
+        isModalCorrectState = isUserCorrect;
+        isLevelUpPending = false; // 플래그 초기화
 
-        const modal = document.getElementById("result-popup");
-        const cardInner = document.getElementById("result-card-inner");
-        const iconNode = document.getElementById("result-icon");
-        const textNode = document.getElementById("result-message");
-        const actionBtn = document.getElementById("result-action-btn");
+        const modal = document.getElementById("result-popup");
+        const cardInner = document.getElementById("result-card-inner");
+        const iconNode = document.getElementById("result-icon");
+        const textNode = document.getElementById("result-message");
+        const actionBtn = document.getElementById("result-action-btn");
 
-        // 정답을 맞혔을 때 다음 레벨 달성 유무 사전 판별 계산
-        if (isUserCorrect) {
-            cardInner.className = "result-content correct-style";
-            iconNode.innerText = "✔️";
-            textNode.innerText = "정답입니다!";
-            
-            // 임시 카운트를 계산하여 진급 임계치 도달 여부 확인
-            if (currentQuestionCount + 1 >= questionsToAnswer) {
-                isLevelUpPending = true;
-            }
-        } else {
-            cardInner.className = "result-content incorrect-style";
-            iconNode.innerText = "❌";
-            textNode.innerText = "오답입니다.";
-        }
-        
-        // 정오답 모달 활성화 노출
-        actionBtn.setAttribute("onclick", "handleResultModalConfirm()");
-        modal.style.display = "flex";
-    }
+        // 정답을 맞혔을 때 다음 레벨 달성 유무 사전 판별 계산
+        if (isUserCorrect) {
+            cardInner.className = "result-content correct-style";
+            iconNode.innerText = "✔️";
+            textNode.innerText = "정답입니다!";
+            
+            // 임시 카운트를 계산하여 진급 임계치 도달 여부 확인
+            if (currentQuestionCount + 1 >= questionsToAnswer) {
+                isLevelUpPending = true;
+            }
+        } else {
+            cardInner.className = "result-content incorrect-style";
+            iconNode.innerText = "❌";
+            textNode.innerText = "오답입니다.";
+        }
+        
+        // 정오답 모달 활성화 노출
+        actionBtn.setAttribute("onclick", "handleResultModalConfirm()");
+        modal.style.display = "flex";
+    }
 
-    /* 🟢🔴 정답/오답 팝업 내부의 확인 버튼 클릭 시 실질적 트리거 작동부 */
-    function handleResultModalConfirm() {
-        if (isModalCorrectState) {
-            currentQuestionCount++;
-            
-            /* ✨ [업데이트] 정답 확인 창을 닫은 직후, 레벨업 조건 충족 시 커스텀 축하 모달로 즉시 스위칭 */
-            if (isLevelUpPending) {
-                isLevelUpPending = false; // 플래그 리셋
-                currentLevel++;
-                questionsToAnswer = currentLevel; 
-                currentQuestionCount = 0;
+    /* 🟢🔴 정답/오답 팝업 내부의 확인 버튼 클릭 시 실질적 트리거 작동부 */
+    function handleResultModalConfirm() {
+        if (isModalCorrectState) {
+            currentQuestionCount++;
+            
+            /* ✨ [업데이트] 정답 확인 창을 닫은 직후, 레벨업 조건 충족 시 커스텀 축하 모달로 즉시 스위칭 */
+            if (isLevelUpPending) {
+                isLevelUpPending = false; // 플래그 리셋
+                currentLevel++;
+                questionsToAnswer = currentLevel; 
+                currentQuestionCount = 0;
 
-                const cardInner = document.getElementById("result-card-inner");
-                const iconNode = document.getElementById("result-icon");
-                const textNode = document.getElementById("result-message");
-                const actionBtn = document.getElementById("result-action-btn");
+                const cardInner = document.getElementById("result-card-inner");
+                const iconNode = document.getElementById("result-icon");
+                const textNode = document.getElementById("result-message");
+                const actionBtn = document.getElementById("result-action-btn");
 
-                // 레벨업 스킨 양식으로 모달 콘텐츠 리모델링 (image_216986.png 양식 대치)
-                cardInner.className = "result-content level-up-style";
-                iconNode.innerText = "🎉";
-                textNode.innerText = `축하합니다!<br>다음 레벨 [Level ${currentLevel}]로 진급합니다.`;
-                
-                // 버튼 이벤트를 레벨업 전용 종료 함수로 변경
-                actionBtn.setAttribute("onclick", "handleLevelUpModalConfirm()");
-                return; // 모달창을 닫지 않고 유지한 채 리턴
-            }
-            generateWordQuestion();
-        } else {
-            currentQuestionCount = 0; 
-            generateWordQuestion();
-        }
-        // 기본 닫기 처리
-        document.getElementById("result-popup").style.display = "none";
-    }
+                // 레벨업 스킨 양식으로 모달 콘텐츠 리모델링 (image_216986.png 양식 대치)
+                cardInner.className = "result-content level-up-style";
+                iconNode.innerText = "🎉";
+                textNode.innerText = `축하합니다!<br>다음 레벨 [Level ${currentLevel}]로 진급합니다.`;
+                
+                // 버튼 이벤트를 레벨업 전용 종료 함수로 변경
+                actionBtn.setAttribute("onclick", "handleLevelUpModalConfirm()");
+                return; // 모달창을 닫지 않고 유지한 채 리턴
+            }
+            generateWordQuestion();
+        } else {
+            currentQuestionCount = 0; 
+            generateWordQuestion();
+        }
+        // 기본 닫기 처리
+        document.getElementById("result-popup").style.display = "none";
+    }
 
-    /* ✨ [추가] 레벨업 모달창 전용 [확인] 처리 함수 */
-    function handleLevelUpModalConfirm() {
-        document.getElementById("result-popup").style.display = "none";
-        generateWordQuestion(); // 새 레벨 문항 생성 후 플레이 재개
-    }
+    /* ✨ [추가] 레벨업 모달창 전용 [확인] 처리 함수 */
+    function handleLevelUpModalConfirm() {
+        document.getElementById("result-popup").style.display = "none";
+        generateWordQuestion(); // 새 레벨 문항 생성 후 플레이 재개
+    }
 
-    /* 🔄 초기 화면으로 백헤딩 탈출 처리 함수 */
-    function goBackToSetup() {
-        copyReportToClipboard();
-        document.getElementById("app").style.display = "none";
-        document.getElementById("intro-screen").style.display = "block";
-        clearInterval(timer);
-        secondsLeft = maxSeconds;
-        displayTimerText();
-    }
+    /* 🔄 초기 화면으로 백헤딩 탈출 처리 함수 */
+    function goBackToSetup() {
+        copyReportToClipboard();
+        document.getElementById("app").style.display = "none";
+        document.getElementById("intro-screen").style.display = "block";
+        clearInterval(timer);
+        secondsLeft = maxSeconds;
+        displayTimerText();
+    }
 
-    window.onload = () => { 
-        updateAdDisplay(); 
-        initBackHistory(); 
-    };
+    window.onload = () => { 
+        updateAdDisplay(); 
+        initBackHistory(); 
+    };
 </script>
 </body>
 </html>
