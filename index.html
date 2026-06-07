@@ -186,7 +186,7 @@
 
 <div class="copyright">
     Copyright 2026. <b>johnpark236-tech</b> All rights reserved.<br>
-    본 소프트웨어의 무단 복제, 수정 및 재배포를 금하며, 발견 시 법적 책임을물을 수 있습니다.
+    본 소프트웨어의 무단 복제, 수정 및 재배포를 금하며, 발견 시 법적 책임을물 수 있습니다.
 </div>
 
 <script>
@@ -329,7 +329,7 @@
             return;
         }
 
-        /* ✨ [추가] 중복 없이 순차 추출하기 위해 원본 데이터를 기반으로 무작위 셔플 풀 생성 */
+        /* ✨ 중복 없이 순차 추출하기 위해 원본 데이터를 기반으로 무작위 셔플 풀 생성 */
         shuffledPool = [...wordData].sort(() => 0.5 - Math.random());
 
         document.getElementById("intro-screen").style.display = "none";
@@ -345,7 +345,7 @@
 
     /* 🎯 4지선다형 객관식 퀴즈 문항 자동 동적 빌드 함수 */
     function generateWordQuestion() {
-        /* ✨ [추가] 출제 가능한 단어 풀이 바닥난 경우 예외 처리 -> 최종 결과 리포트 팝업 제어 유닛으로 라우팅 */
+        /* ✨ 출제 가능한 단어 풀이 바닥난 경우 예외 처리 -> 최종 결과 리포트 팝업 제어 유닛으로 라우팅 */
         if (shuffledPool.length === 0) {
             compileAndShowReport();
             return;
@@ -355,7 +355,7 @@
         document.getElementById("level-display").innerText = `Level ${currentLevel}`;
         document.getElementById("progress-display").innerText = `현재 레벨 진행도: ${currentQuestionCount} / ${questionsToAnswer}`;
 
-        /* ✨ [수정] 무작위 선정이 아닌, 이미 셔플된 풀에서 하나씩 pop() 하여 중복 출제 완전 방지 */
+        /* ✨ 무작위 선정이 아닌, 이미 셔플된 풀에서 하나씩 pop() 하여 중복 출제 완전 방지 */
         const correctTarget = shuffledPool.pop();
         currentCorrectAnswer = correctTarget[currentLang];
         
@@ -424,7 +424,8 @@
         } else {
             cardInner.className = "result-content incorrect-style";
             iconNode.innerText = "❌";
-            textNode.innerText = "오답입니다.";
+            /* 💡 [요구사항 반영] 오답 팝업창 내부에 실제 문항의 올바른 뜻 정답 내용을 가공 명확하게 출력 기입 */
+            textNode.innerHTML = `앗! 틀렸어요. 😢<br><br><span style="font-size:14px; display:block; color:#666;">'${currentQuestionInfo.ko}'의 올바른 뜻은</span><span style="color:#2e7d32; font-size:16px; font-weight:bold;">[ ${currentQuestionInfo.target} ]</span> 입니다.`;
         }
         
         // 정오답 모달 활성화 노출
@@ -437,7 +438,7 @@
         if (isModalCorrectState) {
             currentQuestionCount++;
             
-            /* ✨ [업데이트] 정답 확인 창을 닫은 직후, 레벨업 조건 충족 시 커스텀 축하 모달로 즉시 스위칭 */
+            /* ✨ 정답 확인 창을 닫은 직후, 레벨업 조건 충족 시 커스텀 축하 모달로 즉시 스위칭 */
             if (isLevelUpPending) {
                 isLevelUpPending = false; // 플래그 리셋
                 currentLevel++;
@@ -517,7 +518,7 @@
             document.getElementById("report-retry-failed-btn").style.display = "block";
         }
 
-        // 화면 팝업용 내부 HTML 렌더링링
+        // 화면 팝업용 내부 HTML 렌더링
         let displayHtml = `점수 : <b>${scoreValue}점</b><br>`;
         displayHtml += `총 문제 : ${totalQuestions}<br>`;
         displayHtml += `정답 : <span style="color:#2e7d32; font-weight:bold;">${correctCount}</span><br>`;
