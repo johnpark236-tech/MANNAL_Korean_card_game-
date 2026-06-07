@@ -33,6 +33,15 @@
         /* 🟢🔴 정답, 오답, 레벨업 공용 팝업 모달 스타일 레이아웃 (image_15ae4a.png 양식 완전 이식) */
         #result-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 20000; justify-content: center; align-items: center; }
         .result-content { background: white; padding: 25px; border-radius: 25px; width: 75%; max-width: 260px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); animation: popScale 0.25s ease-out; }
+        
+        /* 📋 [추가] 과별 문제를 모두 풀었을 때 발생하는 최종 학습 결과 리포트 전용 팝업 스타일 */
+        #report-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 30000; justify-content: center; align-items: center; }
+        .report-content { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 340px; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.3); animation: popScale 0.25s ease-out; box-sizing: border-box; }
+        .report-title { font-size: 22px; color: var(--primary-dark); font-weight: bold; text-align: center; margin-bottom: 15px; }
+        .report-body { font-size: 15px; line-height: 1.6; color: #333; max-height: 250px; overflow-y: auto; background: #fafafa; padding: 12px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 15px; font-family: sans-serif; }
+        .report-btn-group { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .report-btn { font-family: 'Jua', sans-serif; border: none; padding: 11px; border-radius: 15px; font-size: 15px; cursor: pointer; text-align: center; width: 100%; color: white; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15); transition: background 0.2s; }
+
         @keyframes popScale { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
         .result-icon-box { font-size: 55px; line-height: 1; margin-bottom: 12px; }
@@ -145,6 +154,19 @@
     </div>
 </div>
 
+<div id="report-popup">
+    <div class="report-content">
+        <div class="report-title">🏆 학습 결과</div>
+        <div id="report-text-area" class="report-body"></div>
+        <div class="report-btn-group">
+            <button class="report-btn" style="background-color:#4caf50;" onclick="actionConfirmAndCopy()">확인 (카카오톡 붙여넣기 복사)</button>
+            <button id="report-retry-failed-btn" class="report-btn" style="background-color:#e53935;" onclick="actionPlayIncorrectOnly()">📕 오답만 다시 풀기</button>
+            <button class="report-btn" style="background-color:#ffb300;" onclick="actionRestartFullQuiz()">🔄 다시 학습</button>
+            <button class="report-btn" style="background-color:#757575;" onclick="actionGoMainScreen()">🏠 메인으로</button>
+        </div>
+    </div>
+</div>
+
 <div id="app" class="card" style="display:none;">
     <div class="level-info" id="level-display">Level 1</div>
     <div id="progress-display" style="font-size: 14px; color: var(--primary-dark); margin-bottom: 12px;">진행도: 0 / 1</div>
@@ -187,15 +209,22 @@
     const FILE_ID = getDriveId(GOOGLE_DRIVE_LINK);
 
     let wordData = [];         
+    let shuffledPool = [];     /* ✨ [추가] 중복 출제 방지용 셔플된 문제 풀 배열 */
     let currentLang = 'vi';    
     let currentLevel = 1; 
     let questionsToAnswer = 1; 
     let currentQuestionCount = 0; 
     let currentCorrectAnswer = "";
     
+    /* ⏰ [추가] 총 학습 연산용 시간 카운터 변수 집합 */
+    let quizStartTime = null;
+    let finalReportText = "";
+    let incorrectQueue = [];   /* 📕 오답노트 전용 추출 세션 큐 */
+    let isIncorrectOnlyMode = false; /* 현재 세션이 오답 풀이 세션인지 여부 스위치 */
+
     /* 📝 카카오톡 전송용 테스트 결과 리포트 저장용 메모리 풀 */
     let quizHistory = []; 
-    let currentQuestionInfo = { ko: "", target: "" };
+    let currentQuestionInfo = { ko: "", target: "", emoji: "" };
     
     /* 🟢🔴 모달 제어용 내부 상태 값 스위치 */
     let isModalCorrectState = false;
@@ -215,8 +244,8 @@
     }
 
     window.onpopstate = function(event) {
-        if (document.getElementById("app").style.display === "block") {
-            goBackToSetup();
+        if (document.getElementById("app").style.display === "block" || document.getElementById("report-popup").style.display === "flex") {
+            actionGoMainScreen();
             initBackHistory();
         } else {
             if (confirm("한 번 더 누르면 창이 닫힙니다. 프로그램을 종료하시겠습니까?")) {
@@ -236,28 +265,8 @@
     /* 📋 실시간 테스트 통계 산출 및 클립보드 스크립트 복사 엔진 */
     function copyReportToClipboard() {
         if (quizHistory.length === 0) return;
-
-        const totalQuestions = quizHistory.length;
-        const correctCount = quizHistory.filter(item => item.isCorrect).length;
-        const selectedChapter = document.getElementById('sheet-select').value;
-        const selectedLangLabel = document.getElementById('lang-select').options[document.getElementById('lang-select').selectedIndex].text;
-
-        let reportText = `=========================\n`;
-        reportText += `🌸 MANNAL 한국어 공부 결과 리포트 🌸\n`;
-        reportText += `=========================\n`;
-        reportText += `📅 학습 과: ${selectedChapter}\n`;
-        reportText += `🌐 언어: ${selectedLangLabel}\n`;
-        reportText += `📊 결과 통계: 총 ${totalQuestions}문제 중 ${correctCount}개 정답!\n\n`;
-        reportText += `📝 [문제별 상세 리스트]\n`;
-
-        quizHistory.forEach((record, index) => {
-            const statusSymbol = record.isCorrect ? "⭕ 정답" : "❌ 오답";
-            reportText += `${index + 1}. 한국어 [${record.koWord}] -> 선택: [${record.userChoice}] (정답: [${record.correctValue}]) [${statusSymbol}]\n`;
-        });
-
-        reportText += `\n카카오톡 대화방에 붙여넣어 공유해보세요! 💕`;
-
-        navigator.clipboard.writeText(reportText).then(() => {
+        
+        navigator.clipboard.writeText(finalReportText).then(() => {
             console.log("테스트 레포트가 성공적으로 클립보드에 백업되었습니다.");
         }).catch(err => {
             console.error("클립보드 저장 실패: ", err);
@@ -270,6 +279,7 @@
         currentLang = document.getElementById('lang-select').value;
         
         quizHistory = [];
+        isIncorrectOnlyMode = false; /* 일반 시작 시 오답모드 비활성화 */
 
         if (!FILE_ID) {
             alert("구글 시트 주소가 올바르지 않습니다. 코드를 다시 확인해주세요.");
@@ -319,6 +329,9 @@
             return;
         }
 
+        /* ✨ [추가] 중복 없이 순차 추출하기 위해 원본 데이터를 기반으로 무작위 셔플 풀 생성 */
+        shuffledPool = [...wordData].sort(() => 0.5 - Math.random());
+
         document.getElementById("intro-screen").style.display = "none";
         document.getElementById("app").style.display = "block";
         
@@ -326,20 +339,29 @@
         questionsToAnswer = 1;
         currentQuestionCount = 0;
         
+        quizStartTime = new Date(); /* 학습 시작 시각 스탬프 세팅 */
         generateWordQuestion();
     }
 
     /* 🎯 4지선다형 객관식 퀴즈 문항 자동 동적 빌드 함수 */
     function generateWordQuestion() {
+        /* ✨ [추가] 출제 가능한 단어 풀이 바닥난 경우 예외 처리 -> 최종 결과 리포트 팝업 제어 유닛으로 라우팅 */
+        if (shuffledPool.length === 0) {
+            compileAndShowReport();
+            return;
+        }
+
         document.getElementById("message").innerText = "";
         document.getElementById("level-display").innerText = `Level ${currentLevel}`;
         document.getElementById("progress-display").innerText = `현재 레벨 진행도: ${currentQuestionCount} / ${questionsToAnswer}`;
 
-        const correctTarget = wordData[Math.floor(Math.random() * wordData.length)];
+        /* ✨ [수정] 무작위 선정이 아닌, 이미 셔플된 풀에서 하나씩 pop() 하여 중복 출제 완전 방지 */
+        const correctTarget = shuffledPool.pop();
         currentCorrectAnswer = correctTarget[currentLang];
         
         currentQuestionInfo.ko = correctTarget.ko;
         currentQuestionInfo.target = currentCorrectAnswer;
+        currentQuestionInfo.emoji = correctTarget.emoji;
 
         document.getElementById("word-display").innerHTML = `${correctTarget.emoji} ${correctTarget.ko}`;
 
@@ -376,7 +398,8 @@
             koWord: currentQuestionInfo.ko,
             userChoice: selectedText,
             correctValue: currentQuestionInfo.target,
-            isCorrect: isUserCorrect
+            isCorrect: isUserCorrect,
+            emoji: currentQuestionInfo.emoji
         });
 
         isModalCorrectState = isUserCorrect;
@@ -450,9 +473,124 @@
         generateWordQuestion(); // 새 레벨 문항 생성 후 플레이 재개
     }
 
+    /* 📊 [추가] 단원 소진 시 성적표 빌드 및 화면 모달 렌더링 핸들러 */
+    function compileAndShowReport() {
+        document.getElementById("result-popup").style.display = "none";
+        document.getElementById("app").style.display = "none";
+
+        const totalQuestions = quizHistory.length;
+        const correctCount = quizHistory.filter(item => item.isCorrect).length;
+        const failedCount = totalQuestions - correctCount;
+        const scoreValue = Math.round((correctCount / totalQuestions) * 100);
+
+        // 시간 계산
+        const endTime = new Date();
+        const diffMs = endTime - quizStartTime;
+        const totalSec = Math.floor(diffMs / 1000);
+        const minPart = Math.floor(totalSec / 60);
+        const secPart = totalSec % 60;
+        const timeString = minPart > 0 ? `${minPart}분 ${secPart}초` : `${secPart}초`;
+
+        // 오답 리스트 수집 및 큐화 (📕 오답만 다시 풀기 세션 베이스용)
+        incorrectQueue = [];
+        let failedNotesHtml = "";
+        let failedNotesText = "";
+        let failedIdxCounter = 1;
+
+        quizHistory.forEach((record, index) => {
+            if (!record.isCorrect) {
+                // 오답 풀 복원을 위한 메타 검색 및 매칭 추출
+                const matchedOrigin = wordData.find(w => w.ko === record.koWord);
+                if (matchedOrigin) incorrectQueue.push(matchedOrigin);
+
+                failedNotesHtml += `${failedIdxCounter}번 : ${record.koWord}<br>내 답 : <span style="color:#c62828;">${record.userChoice}</span><br>정답 : <span style="color:#2e7d32;">${record.correctValue}</span><br><br>`;
+                failedNotesText += `${failedIdxCounter}번 : ${record.koWord}\n내 답 : ${record.userChoice}\n정답 : ${record.correctValue}\n\n`;
+                failedIdxCounter++;
+            }
+        });
+
+        if (failedCount === 0) {
+            failedNotesHtml = "🎉 틀린 문제가 없습니다! 완벽합니다.";
+            failedNotesText = "🎉 틀린 문제가 없습니다! 완벽합니다.\n";
+            document.getElementById("report-retry-failed-btn").style.display = "none";
+        } else {
+            document.getElementById("report-retry-failed-btn").style.display = "block";
+        }
+
+        // 화면 팝업용 내부 HTML 렌더링링
+        let displayHtml = `점수 : <b>${scoreValue}점</b><br>`;
+        displayHtml += `총 문제 : ${totalQuestions}<br>`;
+        displayHtml += `정답 : <span style="color:#2e7d32; font-weight:bold;">${correctCount}</span><br>`;
+        displayHtml += `오답 : <span style="color:#c62828; font-weight:bold;">${failedCount}</span><br><br>`;
+        displayHtml += `⏱️ 학습 시간 : ${timeString}<br>`;
+        displayHtml += `────────────────<br><br>`;
+        displayHtml += `📕 오답노트<br><br>${failedNotesHtml}`;
+
+        document.getElementById("report-text-area").innerHTML = displayHtml;
+
+        // 클립보드 복사용 원본 텍스트 소스 생성 고정
+        finalReportText = `🏆 학습 결과\n\n`;
+        finalReportText += `점수 : ${scoreValue}점\n`;
+        finalReportText += `총 문제 : ${totalQuestions}\n`;
+        finalReportText += `정답 : ${correctCount}\n`;
+        finalReportText += `오답 : ${failedCount}\n\n`;
+        finalReportText += `⏱️ 학습 시간 : ${timeString}\n`;
+        finalReportText += `────────────────\n\n`;
+        finalReportText += `📕 오답노트\n\n${failedNotesText}`;
+        finalReportText += `────────────────\n카카오톡 대화방에 붙여넣어 공유해보세요! 💕`;
+
+        document.getElementById("report-popup").style.display = "flex";
+    }
+
+    /* 🟢 [추가] 리포트 모달 제어용 콜백 함수 세트 */
+    function actionConfirmAndCopy() {
+        copyReportToClipboard();
+        alert("📋 리포트 내용이 클립보드에 복사되었습니다!\n카카오톡 채팅방에 붙여넣기(Ctrl+V) 하시면 공유할 수 있습니다.");
+    }
+
+    function actionPlayIncorrectOnly() {
+        if (incorrectQueue.length === 0) return;
+        document.getElementById("report-popup").style.display = "none";
+        
+        quizHistory = [];
+        isIncorrectOnlyMode = true;
+        
+        // 오답 풀을 기준으로 퀴즈 데이터 셔플 재구성
+        shuffledPool = [...incorrectQueue].sort(() => 0.5 - Math.random());
+        
+        document.getElementById("app").style.display = "block";
+        currentLevel = 1;
+        questionsToAnswer = 1;
+        currentQuestionCount = 0;
+        
+        quizStartTime = new Date();
+        generateWordQuestion();
+    }
+
+    function actionRestartFullQuiz() {
+        document.getElementById("report-popup").style.display = "none";
+        quizHistory = [];
+        
+        // 원본 데이터를 기준으로 전면 재수행 풀 인스턴싱
+        shuffledPool = [...wordData].sort(() => 0.5 - Math.random());
+        
+        document.getElementById("app").style.display = "block";
+        currentLevel = 1;
+        questionsToAnswer = 1;
+        currentQuestionCount = 0;
+        
+        quizStartTime = new Date();
+        generateWordQuestion();
+    }
+
+    function actionGoMainScreen() {
+        document.getElementById("report-popup").style.display = "none";
+        document.getElementById("app").style.display = "none";
+        document.getElementById("intro-screen").style.display = "block";
+    }
+
     /* 🔄 초기 화면으로 백헤딩 탈출 처리 함수 */
     function goBackToSetup() {
-        copyReportToClipboard();
         document.getElementById("app").style.display = "none";
         document.getElementById("intro-screen").style.display = "block";
     }
